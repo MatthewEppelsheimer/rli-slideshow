@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: wp-slidesjs-alt
-Version: 0.1
-Plugin URI: http://rocketlift.com/software/wp-slidesjs-alt
-Description: Adds a shortcut function to WordPress to create Slides JS ( http://slidesjs.com/ ) slideshow from 'slide' custom post type.
+Plugin Name: RLI WordPress Slides.js
+Version: 0.2
+Plugin URI: http://rocketlift.com/software/rli-wpslidesjs
+Description: Creates slideshow from 'slide' custom post type with Slides JS ( http://slidesjs.com/ ).
 Author: Matthew Eppelsheimer based on work by Peter Molnar
 Author URI: http://rocketlift.com/
 License: Apache License, Version 2.0
@@ -32,7 +32,7 @@ if ( ! defined( 'WP_PLUGIN_DIR' ) )
 	define( 'WP_PLUGIN_DIR', ABSPATH . 'wp-content/plugins' );
 
 /* wp-slidesjs constants */
-define ( 'WP_SLIDESJS_PARAM' , 'wp-slidesjs-alt' );
+define ( 'WP_SLIDESJS_PARAM' , 'rli-wpslidesjs' );
 define ( 'WP_SLIDESJS_OPTION_GROUP' , WP_SLIDESJS_PARAM . '-params' );
 define ( 'WP_SLIDESJS_URL' , WP_PLUGIN_URL . '/' . WP_SLIDESJS_PARAM  );
 define ( 'WP_SLIDESJS_DIR' , WP_PLUGIN_DIR . '/' . WP_SLIDESJS_PARAM );
@@ -45,9 +45,7 @@ define ( 'WP_SLIDESJS_SEPARATOR' , ',' );
 
 // set up 'rli_slide' custom post type.
 
-add_action( 'init', 'create_rli_slide_post_type' );
-
-function create_rli_slide_post_type() {
+function rli_wpslides_create_rli_slide_post_type() {
 	register_post_type( 'rli_slide',
 					array(
 						'labels' => array(
@@ -72,601 +70,17 @@ function create_rli_slide_post_type() {
 				);
 			}
 
+add_action( 'init', 'rli_wpslides_create_rli_slide_post_type' );
+
 // First, we "add" the custom post type via the above written function.
 // Then we flus_rewrite_rules to set up permalinks.
-function my_rewrite_flush()  {
-    create_rli_slide_post_type();
+function rli_wpslidesjs_rewrite_flush()  {
+    rli_wpslides_create_rli_slide_post_type();
 
-    // ATTENTION: This is *only* done during plugin activation hook!
-    // You should *NEVER EVER* do this on every page load!!
     flush_rewrite_rules();
 }
 
-register_activation_hook( __FILE__, 'my_rewrite_flush' );
-
-/*
- * WPSlidesJS Class
- *
- */
-
-if (!class_exists('WPSlidesJS')) {
-
-	/**
-	 * main class for wp-slidesjs
-	 *
-	 */
-	class WPSlidesJS {
-
-		var $options = array();
-		var $defaults = array();
-
-		/**
-		* constructor
-		*
-		*/
-		function __construct() {
-
-			/* register options */
-			$this->get_options();
-
-			function rli_slides_alt_init() {
-
-				/* add scripts for non-admin pages */
-				if( ! is_admin() && ! is_feed() )
-				{
-					wp_enqueue_script('jquery');
-					wp_enqueue_script( 'slides.min.jquery.js' , WP_SLIDESJS_URL . '/js/slides.jquery.js' , array('jquery') , '1.0' );
-	
-				// Disabling this conditional, because we're not using the option now and the $this keyword doesn't work in the context of the init hook, as we have rearranged things. - MLE 6/6/12
-				//	if ($this->options['defaultCSS'])
-				//	wp_enqueue_style( 'wp-slidesjs.default.css' , WP_SLIDESJS_URL . '/css/wp-slidesjs.default.css', false, '0.1');
-				}
-				/* add CSS only for admin */
-				else
-				{
-					wp_enqueue_style( 'wp-slidesjs.admin.css' , WP_SLIDESJS_URL . '/css/wp-slidesjs.admin.css', false, '0.1');
-				}
-			}
-
-			add_action( 'init', 'rli_slides_alt_init' );
-
-			/* on activation */
-			register_activation_hook(__FILE__ , array( $this , 'activate') );
-
-			/* init plugin in the admin section */
-			add_action('admin_menu', array( $this , 'admin_init') );
-
-			/* register shortcode */
-			add_shortcode( WP_SLIDESJS_PARAM , array( $this , 'shortcode') );
-
-		}
-
-		/**
-		 * activation hook: save default settings in order to eliminate bugs.
-		 *
-		 */
-		function activate ( ) {
-			$this->save_settings();
-
-		}
-
-		/**
-		 * init function for admin section
-		 *
-		 */
-		function admin_init () {
-			/* register options */
-			register_setting( WP_SLIDESJS_OPTION_GROUP , WP_SLIDESJS_PARAM );
-			add_option( WP_SLIDESJS_PARAM, $this->options , '' , 'no');
-
-			/* save parameter updates, if there are any */
-			if ( isset($_POST[WP_SLIDESJS_PARAM . '-save']) )
-			{
-				$this->save_settings () ;
-				header("Location: options-general.php?page=wp-slidesjs-options&saved=true");
-			}
-
-			/* add the options page to admin section for privileged for admin users */
-			add_options_page('Edit wp-slidesjs options', __('wp-slidesjs', WP_SLIDESJS_PARAM ), 10, 'wp-slidesjs-options', array ( $this , 'admin_panel' ) );
-		}
-
-		/**
-		 * settings panel at admin section
-		 *
-		 */
-		function admin_panel ( ) {
-
-			/**
-			 * security
-			 */
-			if( ! function_exists( 'current_user_can' ) || ! current_user_can( 'manage_options' ) ){
-				die( );
-			}
-
-			/**
-			 * if options were saved
-			 */
-			if ($_GET['saved']=='true') :
-			?>
-
-			<div id='setting-error-settings_updated' class='updated settings-error'><p><strong>Settings saved.</strong></p></div>
-
-			<?php
-			endif;
-
-			/**
-			 * the admin panel itself
-			 */
-			?>
-
-			<div class="wrap">
-			<h2><?php _e( ' wp-slidesjs settings', WP_SLIDESJS_PARAM ) ; ?></h2>
-			<form method="post" action="#">
-
-				<fieldset class="grid50">
-				<legend><?php _e('Layout options',WP_SLIDESJS_PARAM); ?></legend>
-				<dl>
-
-					<dt>
-						<label for="generatePagination"><?php _e('Generate pagination', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="checkbox" name="generatePagination" id="generatePagination" value="1" <?php checked($this->options['generatePagination'],true); ?> />
-						<span class="description"><?php _e('Generate pagination automatically.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php $this->print_bool( $this->defaults['generatePagination']); ?></span>
-						</p>
-					</dd>
-					<dt>
-						<label for="randomize"><?php _e('Randomize', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="checkbox" name="randomize" id="randomize" value="1" <?php checked($this->options['randomize'],true); ?> />
-						<span class="description"><?php _e('Randomize displayed slides order', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php $this->print_bool( $this->defaults['randomize']); ?></span>
-						</p>
-					</dd>
-					<dt>
-						<label for="start"><?php _e('index of first slide', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="number" name="start" id="start" value="<?php echo $this->options['start']; ?>" />
-						<span class="description"><?php _e('Number of slide to start with.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php echo $this->defaults['start']; ?></span>
-						</p>
-					</dd>
-					<dt>
-						<label for="defaultCSS"><?php _e('Use default CSS?', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="checkbox" name="defaultCSS" id="defaultCSS" value="1" <?php checked($this->options['defaultCSS'],true); ?> />
-						<span class="description"><?php _e('Use provided CSS for slides display.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php $this->print_bool( $this->defaults['defaultCSS']); ?></span>
-						</p> </dd>
-					<dt>
-						<label for="contentSource"><?php _e('Content source', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<select name="contentSource" id="contentSource">
-							<?php $this->content_source( $this->options['contentSource'] ) ?>
-						</select>
-						<span class="description"><?php _e('Select content source to be displayed below the post title in the slide.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php $this->content_source( $this->defaults['contentSource'] , true ) ; ?></span>
-						</p>
-					</dd>
-					<dt>
-						<label for="slideTemplate"><?php _e('Slide template', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="text" name="slideTemplate" id="slideTemplate" value="<?php echo $this->options['slideTemplate']; ?>" />
-						<span class="description"><?php _e('NOTE THIS CURRENTLY DOES NOT DO ANYTHING. PHP file with markup template.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php echo $this->defaults['slideTemplate']; ?></span>
-						</p>
-					</dd>
-				</dl>
-				</fieldset>
-
-				<fieldset class="grid50">
-				<legend><?php _e('Behaviour options',WP_SLIDESJS_PARAM); ?></legend>
-				<dl>
-					<dt>
-						<label for="hoverPause"><?php _e('Pause on hover', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="checkbox" name="hoverPause" id="hoverPause" value="1" <?php checked($this->options['hoverPause'],true); ?> />
-						<span class="description"><?php _e('Pause the slideshow while hovering.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php $this->print_bool( $this->defaults['hoverPause']); ?></span>
-						</p>
-					</dd>
-
-					<dt>
-						<label for="bigTarget"><?php _e('Full size click', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="checkbox" name="bigTarget" id="bigTarget" value="1" <?php checked($this->options['bigTarget'],true); ?> />
-						<span class="description"><?php _e('The whole slide will link to next slide on click', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php $this->print_bool( $this->defaults['bigTarget']); ?></span>
-						</p>
-					</dd>
-					<dt>
-						<label for="play"><?php _e('Autoslide time', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="number" name="play" id="play" value="<?php echo $this->options['play']; ?>" />
-						<span class="description"><?php _e('Timeout for autoslide to the next slide in milliseconds. 0 means disabled.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php echo $this->defaults['play']; ?></span>
-						</p>
-					</dd>
-
-					<dt>
-						<label for="pause"><?php _e('Pause time', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="number" name="pause" id="pause" value="<?php echo $this->options['pause']; ?>" />
-						<span class="description"><?php _e('Wait time after pagination was clicked in milliseconds', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php echo $this->defaults['pause']; ?></span>
-						</p>
-					</dd>
-					<dt>
-						<label for="slideSpeed"><?php _e('Slide speed', WP_SLIDESJS_PARAM); ?></label>
-					</dt>
-					<dd>
-						<input type="number" name="slideSpeed" id="slideSpeed" value="<?php echo $this->options['slideSpeed']; ?>" />
-						<span class="description"><?php _e('Speed of sliding in milliseconds.', WP_SLIDESJS_PARAM); ?></span>
-						<span class="default"><?php _e('Default ', WP_SLIDESJS_PARAM); ?>: <?php echo $this->defaults['slideSpeed']; ?></span>
-						</p>
-					</dd>
-				</dl>
-				</fieldset>
-
-				<?php settings_fields( WP_SLIDESJS_OPTION_GROUP ); ?>
-				<p class="button-full"><input class="button-primary" type="submit" name="<?php echo WP_SLIDESJS_PARAM; ?>-save" id="<?php echo WP_SLIDESJS_PARAM; ?>-save" value="Save Changes" /></p>
-			</form>
-			<?php
-
-		}
-
-		/**
-		 * content source selector
-		 *
-		 * @param $current
-		 * 	the active or required identifier
-		 *
-		 * @param $returntext
-		 * 	boolean: is true, the description will be returned of $current
-		 *
-		 * @return
-		 * 	prints either description of $current
-		 * 	or option list for a <select> input field with $current set as active
-		 *
-		 */
-		function content_source ( $current , $returntext = false ) {
-
-			$elements = array (
-				'post_content' => 'content',
-				'post_excerpt' => 'excerpt',
-			);
-
-			$this->print_select_options ( $elements , $current , $returntext );
-
-		}
-
-		/**
-		 * effect selector
-		 *
-		 * @param $current
-		 * 	the active or required identifier
-		 *
-		 * @param $returntext
-		 * 	boolean: is true, the description will be returned of $current
-		 *
-		 * @return
-		 * 	prints either description of $current
-		 * 	or option list for a <select> input field with $current set as active
-		 *
-		 */
-		function effect_type ( $current , $returntext = false ) {
-
-			$elements = array (
-				'fade' => 'fade',
-				'slide' => 'slide',
-			);
-
-			$this->print_select_options ( $elements , $current , $returntext );
-
-		}
-
-		/**
-		 * parameters array with default values;
-		 *
-		 * @param $def
-		 * 	is false, the function returns with the current settings, if true, the defaults will be returned
-		 *
-		 */
-		function get_options ( ) {
-			$defaults = array (
-				'pagination'=>true,
-				'generatePagination'=>true,
-				'slideSpeed'=>350,
-				'start'=>1,
-				'randomize'=>false,
-				'play'=>4000,
-				'pause'=>0,
-				'hoverPause'=>true,
-				'bigTarget'=>false,
-				'defaultCSS'=>true,
-				'contentSource'=>'post_content',
-				'slideTemplate'=>'default'
-			);
-			$this->defaults = $defaults;
-
-			$this->options = get_option( WP_SLIDESJS_PARAM , $defaults );
-		}
-
-		/**
-		 * create js param list from options
-		 *
-		 */
-		function options_to_js ( $tabs=0 ) {
-			$return = false;
-
-			foreach ( $this->options as $key => $value) {
-				if ( is_bool ( $this->defaults[$key] ) )
-					$value = empty ( $value ) ? 'false' : 'true';
-				elseif ( !is_int ( $this->defaults[$key] ) )
-					$value = "'" . $value . "'";
-
-				$return .= str_pad( $key . ": " . $value . ",\n", $tabs , "	");
-			}
-
-			return $return;
-		}
-
-		/**
-		 * save settings function
-		 *
-		 */
-		function save_settings () {
-
-			/**
-			 * update params from $_POST
-			 */
-			foreach ($this->options as $name=>$optionvalue)
-			{
-				if (!empty($_POST[$name]))
-				{
-					$update = $_POST[$name];
-					if (strlen($update)!=0 && !is_numeric($update))
-						$update = stripslashes($update);
-				}
-				elseif ( ( empty($_POST[$name]) && is_bool ($this->defaults[$name]) ) || is_numeric( $update ) )
-				{
-					$update = 0;
-				}
-				else
-				{
-					$update = $this->defaults[$name];
-				}
-				$this->options[$name] = $update;
-			}
-			update_option( WP_SLIDESJS_PARAM , $this->options );
-		}
-
-		/**
-		 * shortcode function
-		 *
-		 * @param $atts
-		 * 	array of passed attributes in shortcode, for example [wp-slidesjs set=ID]
-		 *
-		 * @param $content
-		 * 	optional content between [wp-slidesjs][/wp-slidesjs]
-		 *
-		 * @return
-		 * 	returns with the HTML code to print out
-		 */
-		function shortcode( $atts ,  $content = null ) {
-			$atts = shortcode_atts(array(
-				'limit' => '-1',
-				'category_slug' => false,
-				'category_id' => 1,
-				'post_id' => false,
-				'page_id' => false,
-			), $atts);
-			$limit = array_shift($atts);
-
-			$output = false;
-			$posts = array();
-
-			$_posts = get_posts( array( 'post_type' => 'rli_slide' ) );
-
-			$posts = array_merge( $posts, $_posts);
-
-			/*
-			 * BREAKING MOST FUNCTIONALITY NOW, TO SIMPLY SUPPORT THE CUSTOM POST TYPE
-			 *
-			 *
-
-			// get the 'limit' element off the beginning of types
-			foreach ($atts as $type=>$val)
-			{
-				// if the values of the variable named by the type if not empty
-				if ( !empty($val))
-				{
-					// if the value contains the defined separator, explode into elements
-					$elements = explode( WP_SLIDESJS_SEPARATOR , $val);
-
-					// search for all elements
-					foreach ($elements as $element )
-					{
-						$_posts = false;
-						switch ( $type )
-						{
-							case 'category_slug':
-								$category = get_category_by_slug( $element );
-								$_posts = get_posts( array( 'post_type' => 'rli_slide', 'category' => $category->cat_ID , 'numberposts' => $limit ));
-								break;
-							case 'category_id':
-								$category = get_category ( $element );
-								$_posts = get_posts( array( 'post_type' => 'rli_slide', 'category' => $category->cat_ID , 'numberposts' => $limit ));
-								break;
-							case 'page_id':
-							case 'post_id':
-								$_posts = get_post( $element );
-									if (empty($_posts))
-										$_posts = get_page( $element );
-								break;
-							default :
-								$_posts = get_posts( array( 'post_type' => 'rli_slide' ) );
-								break;
-						}
-
-						// if anything had been found
-						if ( !empty($_posts) )
-						{
-							// if  it's not an array, convert it into one
-							if (!is_array($_posts))
-								$_posts = array($_posts);
-
-							// merge with the already found ones
-							$posts = array_merge( $posts, $_posts);
-						}
-					}
-				}
-			}
-
-			*
-			*/
-
-			$contentsource = $this->options['contentSource'];
-			foreach ( $posts as $post ) {
-				$post_title = htmlspecialchars( stripslashes( $post->post_title ) );
-
-				$bg = '';
-
-			/*
-			 * This is causing errors, and seems unnecessary as $thumbnailsrc is never used.
-			 *
-
-				if ( has_post_thumbnail ( $post->ID ) )
-				{
-					$domsxe = simplexml_load_string( get_the_post_thumbnail( $post->ID ) );
-					$thumbnailsrc = $domsxe->attributes()->src;
-				}
-
-			 *
-			 */
-
-
-			/* 
-			 * Old code (except originally used 'aside' for outer wrapper element)
-			 *
-			 *	$output .= '
-			 *		<article class="wp-slidesjs-slide wp-slidesjs-roundtop">
-			 *			<div class="wp-slidesjs-title">'.$post->post_title.'</div>
-			 *			<div class="wp-slidesjs-content">'.$post->$contentsource.'</div>
-			 *		</article>';
-			 *
-			 */
-
-
-			// TEMPLATE CODE FOR INDIVIDUAL SLIDE 
-				$output .= '
-					<article class="wp-slidejs-slide">
-						<div class="wp-slidesjs-photo-container">' . get_the_post_thumbnail( $post->ID ) . '</div>
-						<div class="wp-slidesjs-content">' . $post->post_content . '</div>
-					</article>';
-
-			}
-
-			/* 
-			 * Old code (except originally used 'aside' for outer wrapper element)
-			 *
-			 *	<section id="wp-slidesjs-'. $category->slug .'" class="wp-slidesjs wp-slidesjs-grad wp-slidesjs-round">
-			 *	<section class="wp-slidesjs-container wp-slidesjs-roundtop">
-			 *	'. $output .'
-			 *		</section>
-			 *	</section>';
-			 *
-			 */
-
-
-			// TEMPLATE CODE FOR SLIDE WRAPPER
-
-			$output = '
-			<section id="wp-slidesjs">
-				<section class="wp-slidesjs-container wp-slidesjs-roundtop">
-			'. $output .'
-				</section>
-			</section>
-			<div><!-- pagination --></div>';
-
-			$js = "
-			<script type='text/javascript'>
-				jQuery(document).ready(function($) {
-					jQuery('#wp-slidesjs').slides({
-						". $this->options_to_js(5) ."
-						pagination: true,
-						generatePagination: true,
-						container: 'wp-slidesjs-container',
-						currentClass: 'wp-slidesjs-current',
-						paginationClass: 'wp-slidesjs-pages',
-					});
-				});
-			</script>";
-
-			$output = $output . $js;
-
-			return $output;
-		}
-
-		/**
-		 * prints `true` or `false` depending on a bool variable.
-		 *
-		 * @param $val
-		 * 	The boolen variable to print status of.
-		 *
-		 */
-		function print_bool ( $val ) {
-			$bool = $val? 'true' : 'false';
-			echo $bool;
-		}
-
-		/**
-		 * select field processor
-		 *
-		 * @param sizes
-		 * 	array to build <option> values of
-		 *
-		 * @param $current
-		 * 	the current resize type
-		 *
-		 * @param $returntext
-		 * 	boolean: is true, the description will be returned of $current type
-		 *
-		 * @return
-		 * 	prints either description of $current
-		 * 	or option list for a <select> input field with $current set as active
-		 *
-		 */
-		function print_select_options ( $sizes, $current, $returntext=false ) {
-
-			if ( $returntext )
-			{
-				_e( $sizes[ $current ] , WP_SLIDESJS_PARAM);
-				return;
-			}
-
-			foreach ($sizes as $ext=>$name)
-			{
-				?>
-				<option value="<?php echo $ext ?>" <?php selected( $ext , $current ); ?>>
-					<?php _e( $name , WP_SLIDESJS_PARAM); ?>
-				</option>
-				<?php
-			}
-
-		}
-	}
-}
+register_activation_hook( __FILE__, 'rli_wpslidesjs_rewrite_flush' );
 
 
 /**
@@ -680,10 +94,163 @@ function uninstall ( ) {
 /* on uninstall */
 register_uninstall_hook(__FILE__ , 'uninstall' );
 
-/**
- * instantiate the class
+/*
+ * Set up UI assets for File Attachment Uploader
  */
-$wp_slidesjs = new WPSlidesJS();
+
+function rli_wpslides_admin_scripts() {
+	wp_enqueue_script('media-upload');
+	wp_enqueue_script('thickbox');
+	wp_register_script('rli-wpslidesjs-admin', WP_PLUGIN_URL.'/rli-wpslidesjs/js/rli-wpslidesjs-admin.js', array('jquery','media-upload','thickbox'));
+	wp_enqueue_script('rli-wpslidesjs-admin');
+}
+
+function rli_wpslides_admin_styles() {
+	wp_enqueue_style('thickbox');
+}
+
+function rli_wpslides_admin_assets() {
+    global $post_type;
+    if( 'rli_slide' == $post_type ) {
+	    rli_wpslides_admin_scripts();
+	    rli_wpslides_admin_styles();
+    }
+}
+
+add_action( 'admin_print_scripts-post-new.php', 'rli_wpslides_admin_assets', 11 );
+add_action( 'admin_print_scripts-post.php', 'rli_wpslides_admin_assets', 11 );
+
+
+/*
+ * Generate html for Slide Settings Metabox
+ */
+
+function rli_wpslidesjs_settings_metabox_render( $post ) {
+
+	// retrieve existing values
+	$rli_wpslidesjs_primary_button_text = get_post_meta( $post->ID, '_rli_wpslidesjs_primary_button_text', true );
+	$rli_wpslidesjs_primary_button_uri = get_post_meta( $post->ID, '_rli_wpslidesjs_primary_button_uri', true );
+	$rli_wpslidesjs_secondary_button_text = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_text', true );
+	$rli_wpslidesjs_secondary_button_uri = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_uri', true );
+	$rli_wpslidesjs_secondary_button_color = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_color', true );
+	$rli_wpslidesjs_background_image = get_post_meta( $post->ID, '_rli_wpslidesjs_background_image', true );
+			
+	// render  inputs
+	echo "
+		<div>
+			<h4>Primary Button</h4>
+			<p>Text: <input type='text' name='rli_wpslidesjs_primary_button_text' value='" . esc_attr( $rli_wpslidesjs_primary_button_text ) . "' /> <em>Defaults to &ldquo;Learn More&rdquo;.</em></p>
+			<p>Link address: <input type='text' name='rli_wpslidesjs_primary_button_uri' value='" . esc_attr( $rli_wpslidesjs_primary_button_uri ) . "' /> <strong><em>Required.</em></strong></p>
+			
+			<h4>Secondary Button</h4>
+			<p>This is optional, and will only be displayed if both the text and link fields are filled out.</p>
+			<p>Text: <input type='text' name='rli_wpslidesjs_secondary_button_text' value='" . esc_attr( $rli_wpslidesjs_secondary_button_text ) . "' /></p>
+			<p>Link address: <input type='text' name='rli_wpslidesjs_secondary_button_uri' value='" . esc_attr( $rli_wpslidesjs_secondary_button_uri ) . "' /></p>
+			<p>Background color: <input type='text' name='rli_wpslidesjs_secondary_button_color' value='" . esc_attr( $rli_wpslidesjs_secondary_button_color ) . "' /> <em>Must be in hexadecimal format including `#`. Defaults to &ldquo;#7b68ee&rdquo;.</em></p>
+
+			<h4>Background Image</h4>
+			<p><strong>Image must be 330 pixels high.</strong> The recommended width is 500 pixels.</p>
+			<p>To select a background image:</p>
+			<ol>
+				<li>Click this button to upload or browse to an already uploaded file: <a class='button-secondary' id='rli-slide-choose-background'>Media Library</a></li>
+				<li>Select and copy the <strong>Link URL</strong> field of the PDF.</li>
+				<li>Close the Media Uploader screen.</li>
+				<li>Paste the issue's <strong>Link URL</strong> from the Media Upload screen in this box: <input style='background-color:#ddd;width:400px;' id='rli_slide_background_image_path' type='text' name='rli_wpslidesjs_background_image' value='" . esc_attr( $rli_wpslidesjs_background_image ) . "' /></li>
+			</ol>
+		</div>";  
+
+}
+
+/*
+ * Create Settings Metabox
+ */
+
+function rli_wpslidesjs_create_detail_metabox() {
+	add_meta_box( 'rli-slide-settings', 'Slide Settings', 'rli_wpslidesjs_settings_metabox_render', 'rli_slide', 'normal', 'high' );
+}
+
+add_action( 'add_meta_boxes', 'rli_wpslidesjs_create_detail_metabox' );
+
+
+// save metabox data
+
+function rli_wpslidesjs_save_meta( $post_id ) {
+
+	// primary button text
+	if ( isset( $_POST['rli_wpslidesjs_primary_button_text'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_primary_button_text', strip_tags( $_POST['rli_wpslidesjs_primary_button_text'] ) );
+	} else { // default
+		update_post_meta( $post_id, '_rli_wpslidesjs_primary_button_text', 'Learn More' );
+	}
+
+	// primary button uri
+	if ( isset( $_POST['rli_wpslidesjs_primary_button_uri'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_primary_button_uri', strip_tags( $_POST['rli_wpslidesjs_primary_button_uri'] ) );
+	}
+
+	// secondary button text
+	if ( isset( $_POST['rli_wpslidesjs_secondary_button_text'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_text', strip_tags( $_POST['rli_wpslidesjs_secondary_button_text'] ) );
+	}
+
+	// secondary button uri
+	if ( isset( $_POST['rli_wpslidesjs_secondary_button_uri'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_uri', strip_tags( $_POST['rli_wpslidesjs_secondary_button_uri'] ) );
+	}
+
+	// secondary button color
+	if ( isset( $_POST['rli_wpslidesjs_secondary_button_color'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_color', strip_tags( $_POST['rli_wpslidesjs_secondary_button_color'] ) );
+	} else { // default
+		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_color', '#7b68ee' );
+	}
+
+	// Background image
+	if ( isset( $_POST['rli_wpslidesjs_background_image'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_background_image', strip_tags( $_POST['rli_wpslidesjs_background_image'] ) );
+	}
+
+}
+
+add_action( 'save_post', 'rli_wpslidesjs_save_meta' );
+
+/**
+ * Modal Button.
+ *
+ * Create a button in the modal media window to associate the current image with the slide.
+ *
+ * @param     array     Multidimensional array representing the images form.
+ * @param     stdClass  WordPress post object.
+ * @return    array     The image's form array with added button if modal window was accessed by this script.
+ *
+ * @access    private
+ * @since     2010-10-28
+ * @alter     0.7
+ */
+function taxonomy_image_plugin_modal_button( $fields, $post ) {
+	if ( isset( $fields['image-size'] ) && isset( $post->ID ) ) {
+		$image_id = (int) $post->ID;
+
+		$o = '<div class="taxonomy-image-modal-control" id="' . esc_attr( 'taxonomy-image-modal-control-' . $image_id ) . '">';
+
+		$o.= '<span class="button create-association">' . sprintf( esc_html__( 'Associate with %1$s', 'taxonomy-images' ), '<span class="term-name">' . esc_html__( 'this term', 'taxonomy-images' ) . '</span>' ) . '</span>';
+
+		$o.= '<span class="remove-association">' . sprintf( esc_html__( 'Remove association with %1$s', 'taxonomy-images' ), '<span class="term-name">' . esc_html__( 'this term', 'taxonomy-images' ) . '</span>' ) . '</span>';
+
+		$o.= '<input class="taxonomy-image-button-image-id" name="' . esc_attr( 'taxonomy-image-button-image-id-' . $image_id ) . '" type="hidden" value="' . esc_attr( $image_id ) . '" />';
+
+		$o.= '<input class="taxonomy-image-button-nonce-create" name="' . esc_attr( 'taxonomy-image-button-nonce-create-' . $image_id ) . '" type="hidden" value="' . esc_attr( wp_create_nonce( 'taxonomy-image-plugin-create-association' ) ) . '" />';
+
+		$o.= '<input class="taxonomy-image-button-nonce-remove" name="' . esc_attr( 'taxonomy-image-button-nonce-remove-' . $image_id ) . '" type="hidden" value="' . esc_attr( wp_create_nonce( 'taxonomy-image-plugin-remove-association' ) ) . '" />';
+
+		$o.= '</div>';
+
+		$fields['image-size']['extra_rows']['taxonomy-image-plugin-button']['html'] = $o;
+	}
+	return $fields;
+}
+add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 20, 2 );
+
 
 
 ?>
