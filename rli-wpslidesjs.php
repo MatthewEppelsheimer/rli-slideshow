@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: RLI WordPress Slides.js
-Version: 0.2
+Version: 0.3
 Plugin URI: http://rocketlift.com/software/rli-wpslidesjs
-Description: Creates slideshow from 'slide' custom post type with Slides JS ( http://slidesjs.com/ ).
+Description: Creates slideshow from 'slide' custom post type with Slides JS ( http://slidesjs.com/ ). NOTE this is pre-release alpha software geared specifically for The Mobile Tech PC website. It is not yet ready for open-source release.
 Author: Matthew Eppelsheimer based on work by Peter Molnar
 Author URI: http://rocketlift.com/
 License: Apache License, Version 2.0
@@ -26,16 +26,16 @@ License: Apache License, Version 2.0
 */
 
 /* older wordpress fix */
-if ( ! defined( 'WP_PLUGIN_URL' ) )
-	define( 'WP_PLUGIN_URL', get_option( 'siteurl' ) . '/wp-content/plugins' );
-if ( ! defined( 'WP_PLUGIN_DIR' ) )
-	define( 'WP_PLUGIN_DIR', ABSPATH . 'wp-content/plugins' );
+if ( ! defined( 'RLI_WPSLIDES_PLUGIN_URL' ) )
+	define( 'RLI_WPSLIDES_PLUGIN_URL', get_option( 'siteurl' ) . '/wp-content/plugins' );
+if ( ! defined( 'RLI_WPSLIDES_PLUGIN_DIR' ) )
+	define( 'RLI_WPSLIDES_PLUGIN_DIR', ABSPATH . 'wp-content/plugins' );
 
 /* wp-slidesjs constants */
 define ( 'WP_SLIDESJS_PARAM' , 'rli-wpslidesjs' );
 define ( 'WP_SLIDESJS_OPTION_GROUP' , WP_SLIDESJS_PARAM . '-params' );
-define ( 'WP_SLIDESJS_URL' , WP_PLUGIN_URL . '/' . WP_SLIDESJS_PARAM  );
-define ( 'WP_SLIDESJS_DIR' , WP_PLUGIN_DIR . '/' . WP_SLIDESJS_PARAM );
+define ( 'WP_SLIDESJS_URL' , RLI_WPSLIDES_PLUGIN_URL . '/' . WP_SLIDESJS_PARAM  );
+define ( 'WP_SLIDESJS_DIR' , RLI_WPSLIDES_PLUGIN_DIR . '/' . WP_SLIDESJS_PARAM );
 define ( 'WP_SLIDESJS_SEPARATOR' , ',' );
 
 /*
@@ -101,7 +101,7 @@ register_uninstall_hook(__FILE__ , 'uninstall' );
 function rli_wpslides_admin_scripts() {
 	wp_enqueue_script('media-upload');
 	wp_enqueue_script('thickbox');
-	wp_register_script('rli-wpslidesjs-admin', WP_PLUGIN_URL.'/rli-wpslidesjs/js/rli-wpslidesjs-admin.js', array('jquery','media-upload','thickbox'));
+	wp_register_script('rli-wpslidesjs-admin', RLI_WPSLIDES_PLUGIN_URL.'/rli-wpslidesjs/js/rli-wpslidesjs-admin.js', array('jquery','media-upload','thickbox'));
 	wp_enqueue_script('rli-wpslidesjs-admin');
 }
 
@@ -245,12 +245,44 @@ function taxonomy_image_plugin_modal_button( $fields, $post ) {
 
 		$o.= '</div>';
 
-		$fields['image-size']['extra_rows']['taxonomy-image-plugin-button']['html'] = $o;
-	}
+		$fields['image-size']['extra_rows']['taxonomy-image-plugin-button']['html'] = $o; }
 	return $fields;
 }
+
 add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 20, 2 );
 
+/*
+ *	Pull in assets for slidshow display
+ */
 
+require_once( RLI_WPSLIDES_PLUGIN_DIR . '/display-slideshow.php' );
 
-?>
+// Support for direct manipulation with action hooks in theme templates
+add_action( 'rli_wpslides_js', 'rli_wpslides_js_display_slideshow' );
+
+/*
+ *	rli_wpslidesjs_register_shortcode() registers shortcode 
+ */
+
+function rli_wpslidesjs_register_shortcode() {
+	add_shortcode( 'rli-slidshow', 'rli_slideshow_shortcode' );
+}
+
+add_action( 'init', 'rli_wpslidesjs_register_shortcode' );
+
+/*
+ * rli_slideshow_shortcode() creates a shortcode to display a slideshow on demand
+ */
+
+function rli_slideshow_shortcode( $atts ) {
+	extract( 
+		shortcode_atts( 
+			array(
+				'slideshow' => 'default'
+			), 
+			$atts 
+		) 
+	);
+
+	return rli_wpslidesjs_display_slideshow( $slideshow );
+}
