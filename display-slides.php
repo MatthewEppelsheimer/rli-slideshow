@@ -25,7 +25,7 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 		$default_background_path = "http://dev.rocketlift.com/happyvalleypc/wp-content/uploads/2012/10/slide-background.jpg";
 		// @todo make this target a dynamic id
 		$slide_styles = "\n<style type='text/css'>\ndiv#rli-slideshow div.default-background { background-image: url('$default_background_path');}\n";
-		$slide_output = "<div id='rli-slideshow'>\n<div class='rli-slideshow-container'>\n";
+		$slide_output = "<div id='rli-slideshow' style='display:none;'>\n<div class='rli-slideshow-container'>\n";
 
 
 		// Setup script
@@ -35,7 +35,7 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 		$slide_script = "
 			<script type='text/javascript'>
 				jQuery(document).ready(function($) {
-					$('#rli-slideshow').slides({
+					$('#rli-slideshow').css('display','block').slides({
 						play: 7000,
 						effect: 'fade',
 						crossface: true,
