@@ -134,6 +134,7 @@ function rli_wpslidesjs_settings_metabox_render( $post ) {
 	$rli_wpslidesjs_secondary_button_uri = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_uri', true );
 	$rli_wpslidesjs_secondary_button_color = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_color', true );
 	$rli_wpslidesjs_background_image = get_post_meta( $post->ID, '_rli_wpslidesjs_background_image', true );
+	$rli_wpslidesjs_foreground_image = get_post_meta( $post->ID, '_rli_wpslidesjs_foreground_image', true );
 			
 	// render  inputs
 	echo "
@@ -157,6 +158,8 @@ function rli_wpslidesjs_settings_metabox_render( $post ) {
 				<li>Close the Media Uploader screen.</li>
 				<li>Paste the issue's <strong>Link URL</strong> from the Media Upload screen in this box: <input style='background-color:#ddd;width:400px;' id='rli_slide_background_image_path' type='text' name='rli_wpslidesjs_background_image' value='" . esc_attr( $rli_wpslidesjs_background_image ) . "' /></li>
 			</ol>
+			<h4>Foreground Image</h4>
+			<p><input style='background-color:#ddd;width:400px;' id='rli_slide_foreground_image_path' type='text' name='rli_wpslidesjs_foreground_image' value='" . esc_attr( $rli_wpslidesjs_foreground_image ) . "' /></p>
 		</div>";  
 
 }
@@ -210,6 +213,11 @@ function rli_wpslidesjs_save_meta( $post_id ) {
 		update_post_meta( $post_id, '_rli_wpslidesjs_background_image', strip_tags( $_POST['rli_wpslidesjs_background_image'] ) );
 	}
 
+	// Foreground image
+	if ( isset( $_POST['rli_wpslidesjs_foreground_image'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_foreground_image', strip_tags( $_POST['rli_wpslidesjs_foreground_image'] ) );
+	}
+
 }
 
 add_action( 'save_post', 'rli_wpslidesjs_save_meta' );
@@ -252,13 +260,25 @@ function taxonomy_image_plugin_modal_button( $fields, $post ) {
 add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 20, 2 );
 
 /*
+ *	rli_wpslidesjs_frontend_setup() to enqueue JS
+ *	Currently, this must be called manually in a theme template file 
+ *	before the 'wp_head' action to avoid including it everywhere.
+ *
+ *	@todo Rethink this.
+ */
+
+function rli_wpslidesjs_frontend_setup() {
+	wp_enqueue_script( 'jquery-slides' , WP_SLIDESJS_URL . '/js/slides.min.jquery.js' , array('jquery') );
+}
+
+/*
  *	Pull in assets for slidshow display
  */
 
-require_once( RLI_WPSLIDES_PLUGIN_DIR . '/display-slideshow.php' );
+require_once( RLI_WPSLIDES_PLUGIN_DIR . '/rli-wpslidesjs/display-slides.php' );
 
 // Support for direct manipulation with action hooks in theme templates
-add_action( 'rli_wpslides_js', 'rli_wpslides_js_display_slideshow' );
+add_action( 'rli_wpslides', 'rli_wpslidesjs_display_slideshow' );
 
 /*
  *	rli_wpslidesjs_register_shortcode() registers shortcode 
