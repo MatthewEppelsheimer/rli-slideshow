@@ -17,6 +17,7 @@ _Short-term_:
 - Cleanup admin meta box, e.g. remove recommendations for width
 - Add custom styling options with dynamic style builder
 - Add default stylesheet with option to include it or not
+- More graceful handling of slide place loading, rather than simply appearing all of a sudden.
 
 _Long-term_:
 
