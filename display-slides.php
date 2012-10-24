@@ -15,14 +15,15 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 		array(
 			'post_type' => 'rli_slide',
 			'posts_per_page' => -1,
-			'order' => 'ASC'
+			'order' => 'ASC',
+			'orderby' => 'menu_order'
 		)
 	);
 
 	if( $slides->have_posts() ) {
 
 		// @todo make this an option to be generic
-		$default_background_path = "http://dev.rocketlift.com/happyvalleypc/wp-content/uploads/2012/10/slide-background.jpg";
+		$default_background_path = "http://mobiletechpc.com/wp-content/uploads/2012/10/slide-background.jpg";
 		// @todo make this target a dynamic id
 		$slide_styles = "\n<style type='text/css'>\ndiv#rli-slideshow div.default-background { background-image: url('$default_background_path');}\n";
 		$slide_output = "<div id='rli-slideshow' style='display:none;'>\n<div class='rli-slideshow-container'>\n";
