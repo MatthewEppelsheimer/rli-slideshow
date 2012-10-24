@@ -62,6 +62,7 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 			$secondary_color = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_color', true );
 			$background_image = get_post_meta( $post->ID, '_rli_wpslidesjs_background_image', true );
 			$foreground_image_path = get_post_meta( $post->ID, '_rli_wpslidesjs_foreground_image', true );
+			$include_title = get_post_meta( $post->ID, '_rli_wpslidesjs_slide_header_toggle', true );
 
 			// Misc Setup
 			$slide_classes = "";
@@ -86,6 +87,9 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 			} else {
 				$title = "<$title_element>" . the_title( '', '', false ) ."</$title_element>\n";
 			}
+
+			if ( ! $include_title ) 
+				$title = '';
 
 			// Setup for links
 			$first_link = $second_link = "";

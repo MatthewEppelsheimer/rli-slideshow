@@ -135,10 +135,16 @@ function rli_wpslidesjs_settings_metabox_render( $post ) {
 	$rli_wpslidesjs_secondary_button_color = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_color', true );
 	$rli_wpslidesjs_background_image = get_post_meta( $post->ID, '_rli_wpslidesjs_background_image', true );
 	$rli_wpslidesjs_foreground_image = get_post_meta( $post->ID, '_rli_wpslidesjs_foreground_image', true );
-			
+	$rli_wpslidesjs_slide_header_toggle = get_post_meta( $post->ID, '_rli_wpslidesjs_slide_header_toggle', true );
+
 	// render  inputs
 	echo "
 		<div>
+			<h4>Include Title?</h4>
+			<p><input type='checkbox' name='rli_wpslidesjs_slide_header_toggle' ";
+			if ( $rli_wpslidesjs_slide_header_toggle )
+				echo "checked='checked' ";
+			echo "value='yes' /></p>
 			<h4>Primary Button</h4>
 			<p>Text: <input type='text' name='rli_wpslidesjs_primary_button_text' value='" . esc_attr( $rli_wpslidesjs_primary_button_text ) . "' /> <em>Defaults to &ldquo;Learn More&rdquo;.</em></p>
 			<p>Link address: <input type='text' name='rli_wpslidesjs_primary_button_uri' value='" . esc_attr( $rli_wpslidesjs_primary_button_uri ) . "' /> <strong><em>Required.</em></strong></p>
@@ -178,6 +184,13 @@ add_action( 'add_meta_boxes', 'rli_wpslidesjs_create_detail_metabox' );
 // save metabox data
 
 function rli_wpslidesjs_save_meta( $post_id ) {
+
+	// include slide title toggle
+	if ( isset( $_POST['rli_wpslidesjs_slide_header_toggle'] ) ) {
+		update_post_meta( $post_id, '_rli_wpslidesjs_slide_header_toggle', strip_tags( $_POST['rli_wpslidesjs_slide_header_toggle'] ) );
+	} else { // default
+		update_post_meta( $post_id, '_rli_wpslidesjs_slide_header_toggle', false ); 
+	}
 
 	// primary button text
 	if ( isset( $_POST['rli_wpslidesjs_primary_button_text'] ) ) {
