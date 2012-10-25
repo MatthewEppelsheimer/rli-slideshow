@@ -34,7 +34,7 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 		// @todo move this out of the display loop; do this only once per page so it applies just once to every slideshow on the page
 		// @todo make id targeting dynamie
 		$slide_script = "
-			<script type='text/javascript'>
+			\n<script type='text/javascript'>
 				jQuery(document).ready(function($) {
 					$('#rli-slideshow').css('display','block').slides({
 						play: 7000,
@@ -46,10 +46,10 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 						generatePagination: false,
 						container: 'rli-slideshow-container',
 						currentClass: 'rli-wpslidesjs-current',
-						paginationClass: 'rli-wpslidesjs-pages',
+						paginationClass: 'rli-wpslidesjs-pages'
 					});
 				});
-			</script>";
+			</script>\n";
 
 		while ( $slides->have_posts() ) {
 	    	$slides->the_post();
