@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: RLI WordPress Slides.js
-Version: 0.3
-Plugin URI: http://rocketlift.com/software/rli-wpslidesjs
+Plugin Name: Rocket Lift Slideshow
+Version: 0.4
+Plugin URI: http://rocketlift.com/software/rli-slideshow
 Description: Creates slideshow from 'slide' custom post type with Slides JS ( http://slidesjs.com/ ). NOTE this is pre-release alpha software geared specifically for The Mobile Tech PC website. It is not yet ready for open-source release.
 Author: Matthew Eppelsheimer based on work by Peter Molnar
 Author URI: http://rocketlift.com/
@@ -25,18 +25,29 @@ License: Apache License, Version 2.0
  *
 */
 
-/* older wordpress fix */
-if ( ! defined( 'RLI_WPSLIDES_PLUGIN_URL' ) )
-	define( 'RLI_WPSLIDES_PLUGIN_URL', get_option( 'siteurl' ) . '/wp-content/plugins' );
-if ( ! defined( 'RLI_WPSLIDES_PLUGIN_DIR' ) )
-	define( 'RLI_WPSLIDES_PLUGIN_DIR', ABSPATH . 'wp-content/plugins' );
+/**
+ *	@todo  
+ *
+ *	Working on for Version 0.4: 
+		[ ] a slide template for rendering that replaces display-slides.php
+		[ ] mechanism for extending slide options in the backend per site, using filters
+		[ ] cleanup cruft
 
-/* wp-slidesjs constants */
-define ( 'WP_SLIDESJS_PARAM' , 'rli-wpslidesjs' );
-define ( 'WP_SLIDESJS_OPTION_GROUP' , WP_SLIDESJS_PARAM . '-params' );
-define ( 'WP_SLIDESJS_URL' , RLI_WPSLIDES_PLUGIN_URL . '/' . WP_SLIDESJS_PARAM  );
-define ( 'WP_SLIDESJS_DIR' , RLI_WPSLIDES_PLUGIN_DIR . '/' . WP_SLIDESJS_PARAM );
-define ( 'WP_SLIDESJS_SEPARATOR' , ',' );
+ *	Targeted for 0.5: Multiple slideshow support in the backend
+		[ ] call rli_wpslidesjs_frontend_setup() dynamically
+ *
+ *	Targeted for 0.6: Code documentation, code cleanup
+		- add consistent textdomain params to __() uses
+		- around global #pagenow, pass $hook and do stuff based on that, rather than doing the crazy-specific action hook. 
+		- in rli_wpslidesjs_save_meta(), an option to cleanup using delete_post_meta
+		- Backend menu icons for slides and slideshows
+		- Daniel's suggestsion within rli_wpslidesjs_save_meta is to (within global scope) setup arrays of string values to work on using foreach loops, rather than the repetetive isset() stuff. 
+
+ *
+ *	Targeted for 0.7: [Premium] Multiple slideshow support per page in the front-end
+ *
+ *	Targeted for 0.8: [Premium] Backend slideshow builder
+ */
 
 /*
  * ACTIVATION
@@ -44,6 +55,8 @@ define ( 'WP_SLIDESJS_SEPARATOR' , ',' );
  */
 
 // set up 'rli_slide' custom post type.
+// 
+// TODO 'menu_icon' => 'some-image.png',
 
 function rli_wpslides_create_rli_slide_post_type() {
 	register_post_type( 'rli_slide',
@@ -58,14 +71,12 @@ function rli_wpslides_create_rli_slide_post_type() {
 						'publicly_queryable' => false,
 						'show_in_nav_menus' => false,
 						'menu_position' => 5,
-						// TODO 'menu_icon' => 'some-image.png',
 						'map_meta_cap' => true,
 						'hierarchical' => true,
 						'supports' => array(
 							'title' , 'editor' , 'thumbnail' , 'page-attributes'
 						),
-						'has_archive' => false,
-						'rewrite' => array( 'slug' => 'slides' )
+						'has_archive' => false
 					)
 				);
 			}
@@ -73,7 +84,10 @@ function rli_wpslides_create_rli_slide_post_type() {
 add_action( 'init', 'rli_wpslides_create_rli_slide_post_type' );
 
 // First, we "add" the custom post type via the above written function.
-// Then we flus_rewrite_rules to set up permalinks.
+// Then we flush_rewrite_rules to set up permalinks.
+// @todo Bachuber said this is too late to flush rewrite rules. What's the fix?
+//
+
 function rli_wpslidesjs_rewrite_flush()  {
     rli_wpslides_create_rli_slide_post_type();
 
@@ -82,26 +96,12 @@ function rli_wpslidesjs_rewrite_flush()  {
 
 register_activation_hook( __FILE__, 'rli_wpslidesjs_rewrite_flush' );
 
-
-/**
- * clean up at uninstall
- *
- */
-function uninstall ( ) {
-	delete_option( WP_SLIDESJS_PARAM );
-}
-
-/* on uninstall */
-register_uninstall_hook(__FILE__ , 'uninstall' );
-
 /*
  * Set up UI assets for File Attachment Uploader
  */
 
 function rli_wpslides_admin_scripts() {
-	wp_enqueue_script('media-upload');
-	wp_enqueue_script('thickbox');
-	wp_register_script('rli-wpslidesjs-admin', RLI_WPSLIDES_PLUGIN_URL.'/rli-wpslidesjs/js/rli-wpslidesjs-admin.js', array('jquery','media-upload','thickbox'));
+	wp_register_script('rli-wpslidesjs-admin', plugins_url('js/rli-wpslidesjs-admin.js', __FILE__ ), array('jquery','media-upload','thickbox'));
 	wp_enqueue_script('rli-wpslidesjs-admin');
 }
 
@@ -146,14 +146,14 @@ function rli_wpslidesjs_settings_metabox_render( $post ) {
 				echo "checked='checked' ";
 			echo "value='yes' /></p>
 			<h4>Primary Button</h4>
-			<p>Text: <input type='text' name='rli_wpslidesjs_primary_button_text' value='" . esc_attr( $rli_wpslidesjs_primary_button_text ) . "' /> <em>Defaults to &ldquo;Learn More&rdquo;.</em></p>
-			<p>Link address: <input type='text' name='rli_wpslidesjs_primary_button_uri' value='" . esc_attr( $rli_wpslidesjs_primary_button_uri ) . "' /> <strong><em>Required.</em></strong></p>
+			<p>Text: <input type='text' name='rli_wpslidesjs_primary_button_text' value='" . esc_attr( $rli_wpslidesjs_primary_button_text ) . "' /> <em class='how-to'>Defaults to &ldquo;Learn More&rdquo;.</em></p>
+			<p>Link address: <input type='text' name='rli_wpslidesjs_primary_button_uri' value='" . esc_attr( $rli_wpslidesjs_primary_button_uri ) . "' /> <strong><em class='how-to'>Required.</em></strong></p>
 			
 			<h4>Secondary Button</h4>
 			<p>This is optional, and will only be displayed if both the text and link fields are filled out.</p>
 			<p>Text: <input type='text' name='rli_wpslidesjs_secondary_button_text' value='" . esc_attr( $rli_wpslidesjs_secondary_button_text ) . "' /></p>
 			<p>Link address: <input type='text' name='rli_wpslidesjs_secondary_button_uri' value='" . esc_attr( $rli_wpslidesjs_secondary_button_uri ) . "' /></p>
-			<p>Background color: <input type='text' name='rli_wpslidesjs_secondary_button_color' value='" . esc_attr( $rli_wpslidesjs_secondary_button_color ) . "' /> <em>Must be in hexadecimal format including `#`. Defaults to &ldquo;#7b68ee&rdquo;.</em></p>
+			<p>Background color: <input type='text' name='rli_wpslidesjs_secondary_button_color' value='" . esc_attr( $rli_wpslidesjs_secondary_button_color ) . "' /> <em class='how-to'>Must be in hexadecimal format including `#`. Defaults to &ldquo;#7b68ee&rdquo;.</em></p>
 
 			<h4>Background Image</h4>
 			<p><strong>Image must be 330 pixels high.</strong> The recommended width is 500 pixels.</p>
@@ -281,14 +281,14 @@ add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 2
  */
 
 function rli_wpslidesjs_frontend_setup() {
-	wp_enqueue_script( 'jquery-slides' , WP_SLIDESJS_URL . '/js/slides.min.jquery.js' , array('jquery') );
+	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery') );
 }
 
 /*
  *	Pull in assets for slidshow display
  */
 
-require_once( RLI_WPSLIDES_PLUGIN_DIR . '/rli-wpslidesjs/display-slides.php' );
+require_once( plugins_url( 'display-slides.php', __FILE__ );
 
 // Support for direct manipulation with action hooks in theme templates
 add_action( 'rli_wpslides', 'rli_wpslidesjs_display_slideshow' );
