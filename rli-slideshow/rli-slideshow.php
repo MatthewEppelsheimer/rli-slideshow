@@ -288,7 +288,7 @@ function rli_wpslidesjs_frontend_setup() {
  *	Pull in assets for slidshow display
  */
 
-require_once( plugins_url( 'display-slides.php', __FILE__ );
+require_once( plugins_url( 'display-slides.php', __FILE__ ) );
 
 // Support for direct manipulation with action hooks in theme templates
 add_action( 'rli_wpslides', 'rli_wpslidesjs_display_slideshow' );
