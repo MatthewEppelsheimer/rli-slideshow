@@ -25,38 +25,6 @@ License: Apache License, Version 2.0
  *
 */
 
-/**
- *	@todo  
- *
- *	Working on for Version 0.4: 
-		[ ] a default slide template for rendering that replaces display-slides.php
-		[ ] mechanism for extending slide options in the backend per site, using filters
-		[x] cleanup cruft
-		[ ] completely genericized
-
- *	Targeted for 0.5: 
-		[ ] Create custom template builder
-		[ ] consider making templates object-oriented
- *
- *	Targeted for 0.6: 
-		[ ] Multiple slideshow support in the backend
-		[ ] call rli_wpslidesjs_frontend_setup() dynamically
-
- *
- *	Targeted for 0.7: 
-		[ ] Code documentation, code cleanup
-		- add consistent textdomain params to __() uses
-		- around global #pagenow, pass $hook and do stuff based on that, rather than doing the crazy-specific action hook. 
-		- in rli_wpslidesjs_save_meta(), an option to cleanup using delete_post_meta
-		- Backend menu icons for slides and slideshows
-		- Daniel's suggestsion within rli_wpslidesjs_save_meta is to (within global scope) setup arrays of string values to work on using foreach loops, rather than the repetetive isset() stuff. 
-		- Review use of thickbox media uploader
-
- *	Targeted for 0.8: 
-		- [Premium] Backend slideshow builder 
-		- [Premium] Multiple slideshow support per page in the front-end
- */
-
 /*
  * ACTIVATION
  *
@@ -65,8 +33,6 @@ License: Apache License, Version 2.0
 // set up 'rli_slide' custom post type.
 // 
 // TODO 'menu_icon' => 'some-image.png',
-
-/*
 
 function rli_wpslides_create_rli_slide_post_type() {
 	register_post_type( 'rli_slide',
@@ -93,14 +59,10 @@ function rli_wpslides_create_rli_slide_post_type() {
 
 add_action( 'init', 'rli_wpslides_create_rli_slide_post_type' );
 
-*/
-
 // First, we "add" the custom post type via the above written function.
 // Then we flush_rewrite_rules to set up permalinks.
 // @todo Bachuber said this is too late to flush rewrite rules. What's the fix?
 //
-
-/*
 
 function rli_wpslidesjs_rewrite_flush()  {
     rli_wpslides_create_rli_slide_post_type();
@@ -110,14 +72,10 @@ function rli_wpslidesjs_rewrite_flush()  {
 
 register_activation_hook( __FILE__, 'rli_wpslidesjs_rewrite_flush' );
 
-*/
-
 /*
  * Set up UI assets for File Attachment Uploader
  * @todo how are we using this?
  */
-
-/*
 
 function rli_wpslides_admin_scripts() {
 	wp_register_script('rli-wpslidesjs-admin', plugins_url('js/rli-wpslidesjs-admin.js', __FILE__ ), array('jquery','media-upload','thickbox'));
@@ -139,9 +97,6 @@ function rli_wpslides_admin_assets() {
 add_action( 'admin_print_scripts-post-new.php', 'rli_wpslides_admin_assets', 11 );
 add_action( 'admin_print_scripts-post.php', 'rli_wpslides_admin_assets', 11 );
 
-*/
-
-
 /*
  * rli_slideshow_slide_editor_metabox_render( $post, $template )
  * Builds the metabox for a slide based on its template
@@ -150,14 +105,10 @@ add_action( 'admin_print_scripts-post.php', 'rli_wpslides_admin_assets', 11 );
  * @param str $template - the slug name of the slide's template
  */
 
-/*
-
 function rli_slideshow_slide_editor_metabox_render( $post, $template = 'default' ) {
 	$output = "<div>\n";
 	$template_options = rli_slideshow_get_slide_template_options( $post, $template );
 }
-
-*/
 
 /*
  * rli_slideshow_get_slide_template_options( $template )
@@ -167,8 +118,6 @@ function rli_slideshow_slide_editor_metabox_render( $post, $template = 'default'
  * @param str $template - the slug name of the slide's template
  */
 
-/*
-
 function rli_slideshow_get_slide_template_options( $post, $template ) {
 	// @todo replace this with a function to return $template_keys by looking up the template
 	$template_keys = array(
@@ -177,7 +126,7 @@ function rli_slideshow_get_slide_template_options( $post, $template ) {
 			'order' => 0,
 			'name' => 'Background Image',
 			'description' => 'The slide\'s background image',
-			'help' => 'Defaults to the default image in settings'
+			'help' => 'Defaults to the default image in settings',
 			'css' => '%s { background-image: %s; }'
 		),
 		array(
@@ -199,13 +148,9 @@ function rli_slideshow_get_slide_template_options( $post, $template ) {
 	// Where does the template come in?
 }
 
-*/
-
 /*
  * Generate html for Slide Settings Metabox
  */
-
-/*
 
 function rli_wpslidesjs_settings_metabox_render( $post ) {
 
@@ -252,13 +197,9 @@ function rli_wpslidesjs_settings_metabox_render( $post ) {
 
 }
 
-*/
-
 /*
  * Create Settings Metabox
  */
-
-/*
 
 function rli_wpslidesjs_create_detail_metabox() {
 	add_meta_box( 'rli-slide-settings', 'Slide Settings', 'rli_wpslidesjs_settings_metabox_render', 'rli_slide', 'normal', 'high' );
@@ -266,12 +207,7 @@ function rli_wpslidesjs_create_detail_metabox() {
 
 add_action( 'add_meta_boxes', 'rli_wpslidesjs_create_detail_metabox' );
 
-*/
-
-
 // save metabox data
-
-/*
 
 function rli_wpslidesjs_save_meta( $post_id ) {
 
@@ -325,8 +261,6 @@ function rli_wpslidesjs_save_meta( $post_id ) {
 
 add_action( 'save_post', 'rli_wpslidesjs_save_meta' );
 
-*/
-
 /**
  * Modal Button.
  *
@@ -341,7 +275,6 @@ add_action( 'save_post', 'rli_wpslidesjs_save_meta' );
  * @alter     0.7
  */
 
-/*
 function taxonomy_image_plugin_modal_button( $fields, $post ) {
 	if ( isset( $fields['image-size'] ) && isset( $post->ID ) ) {
 		$image_id = (int) $post->ID;
@@ -366,8 +299,6 @@ function taxonomy_image_plugin_modal_button( $fields, $post ) {
 
 add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 20, 2 );
 
-*/
-
 /*
  *	rli_wpslidesjs_frontend_setup() to enqueue JS
  *	Currently, this must be called manually in a theme template file 
@@ -376,41 +307,34 @@ add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 2
  *	@todo Rethink this.
  */
 
-/*
-
 function rli_wpslidesjs_frontend_setup() {
 	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery') );
 }
-
-*/
 
 /*
  *	Pull in assets for slidshow display
  */
 
-require_once( plugins_url( 'display-slides.php', __FILE__ ) );
+require_once ( plugin_dir_path( __FILE__ ) . 'display-slides.php' );
+
 
 // Support for direct manipulation with action hooks in theme templates
 add_action( 'rli_wpslides', 'rli_wpslidesjs_display_slideshow' );
+
 
 /*
  *	rli_wpslidesjs_register_shortcode() registers shortcode 
  */
 
-/*
 function rli_wpslidesjs_register_shortcode() {
 	add_shortcode( 'rli-slidshow', 'rli_slideshow_shortcode' );
 }
 
 add_action( 'init', 'rli_wpslidesjs_register_shortcode' );
 
-*/
-
 /*
  * rli_slideshow_shortcode() creates a shortcode to display a slideshow on demand
  */
-
-/*
 
 function rli_slideshow_shortcode( $atts ) {
 	extract( 
@@ -424,4 +348,3 @@ function rli_slideshow_shortcode( $atts ) {
 
 	return rli_wpslidesjs_display_slideshow( $slideshow );
 }
-*/
