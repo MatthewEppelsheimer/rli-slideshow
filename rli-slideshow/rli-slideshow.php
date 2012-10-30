@@ -29,24 +29,32 @@ License: Apache License, Version 2.0
  *	@todo  
  *
  *	Working on for Version 0.4: 
-		[ ] a slide template for rendering that replaces display-slides.php
+		[ ] a default slide template for rendering that replaces display-slides.php
 		[ ] mechanism for extending slide options in the backend per site, using filters
-		[ ] cleanup cruft
+		[x] cleanup cruft
+		[ ] completely genericized
 
- *	Targeted for 0.5: Multiple slideshow support in the backend
-		[ ] call rli_wpslidesjs_frontend_setup() dynamically
+ *	Targeted for 0.5: 
+		[ ] Create custom template builder
+		[ ] consider making templates object-oriented
  *
- *	Targeted for 0.6: Code documentation, code cleanup
+ *	Targeted for 0.6: 
+		[ ] Multiple slideshow support in the backend
+		[ ] call rli_wpslidesjs_frontend_setup() dynamically
+
+ *
+ *	Targeted for 0.7: 
+		[ ] Code documentation, code cleanup
 		- add consistent textdomain params to __() uses
 		- around global #pagenow, pass $hook and do stuff based on that, rather than doing the crazy-specific action hook. 
 		- in rli_wpslidesjs_save_meta(), an option to cleanup using delete_post_meta
 		- Backend menu icons for slides and slideshows
 		- Daniel's suggestsion within rli_wpslidesjs_save_meta is to (within global scope) setup arrays of string values to work on using foreach loops, rather than the repetetive isset() stuff. 
+		- Review use of thickbox media uploader
 
- *
- *	Targeted for 0.7: [Premium] Multiple slideshow support per page in the front-end
- *
- *	Targeted for 0.8: [Premium] Backend slideshow builder
+ *	Targeted for 0.8: 
+		- [Premium] Backend slideshow builder 
+		- [Premium] Multiple slideshow support per page in the front-end
  */
 
 /*
@@ -98,6 +106,7 @@ register_activation_hook( __FILE__, 'rli_wpslidesjs_rewrite_flush' );
 
 /*
  * Set up UI assets for File Attachment Uploader
+ * @todo how are we using this?
  */
 
 function rli_wpslides_admin_scripts() {
@@ -120,6 +129,57 @@ function rli_wpslides_admin_assets() {
 add_action( 'admin_print_scripts-post-new.php', 'rli_wpslides_admin_assets', 11 );
 add_action( 'admin_print_scripts-post.php', 'rli_wpslides_admin_assets', 11 );
 
+
+/*
+ * rli_slideshow_slide_editor_metabox_render( $post, $template )
+ * Builds the metabox for a slide based on its template
+ * 
+ * @param int $post - the global $post object
+ * @param str $template - the slug name of the slide's template
+ */
+
+function rli_slideshow_slide_editor_metabox_render( $post, $template = 'default' ) {
+	$output = "<div>\n";
+	$template_options = rli_slideshow_get_slide_template_options( $post, $template );
+}
+
+/*
+ * rli_slideshow_get_slide_template_options( $template )
+ * Returns option keys and values associated with the given slideshow template
+ *
+ * @param int $post - the global $post object
+ * @param str $template - the slug name of the slide's template
+ */
+
+function rli_slideshow_get_slide_template_options( $post, $template ) {
+	// @todo replace this with a function to return $template_keys by looking up the template
+	$template_keys = array(
+		array(
+			'slug' => 'background_image',
+			'order' => 0,
+			'name' => 'Background Image',
+			'description' => 'The slide\'s background image',
+			'help' => 'Defaults to the default image in settings'
+			'css' => '%s { background-image: %s; }'
+		),
+		array(
+			'slug' => 'content',
+			'order' => 1,
+			'description' => 'The slide\'s content, based on the editor box',
+			'lookup' => 'the_content',
+			'html' => '<div class=\'%s\'>%s</div>'
+		),
+		array(
+			'slug' => 'link_text',
+			'parameter' => true,
+			'description' => 'The slide\'s content, based on the editor box',
+			'lookup' => 'the_content',
+			'html' => '<div class=\'%s\'>%s</div>'
+		)
+	);
+	$slide_options = get_post_meta( $post->ID, '_rli_slideshow_options', true );
+	// Where does the template come in?
+}
 
 /*
  * Generate html for Slide Settings Metabox
