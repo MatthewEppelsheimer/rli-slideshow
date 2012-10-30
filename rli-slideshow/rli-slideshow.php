@@ -34,7 +34,7 @@ License: Apache License, Version 2.0
 // 
 // TODO 'menu_icon' => 'some-image.png',
 
-function rli_wpslides_create_rli_slide_post_type() {
+function rli_slideshow_create_rli_slide_post_type() {
 	register_post_type( 'rli_slide',
 					array(
 						'labels' => array(
@@ -57,45 +57,45 @@ function rli_wpslides_create_rli_slide_post_type() {
 				);
 			}
 
-add_action( 'init', 'rli_wpslides_create_rli_slide_post_type' );
+add_action( 'init', 'rli_slideshow_create_rli_slide_post_type' );
 
 // First, we "add" the custom post type via the above written function.
 // Then we flush_rewrite_rules to set up permalinks.
 // @todo Bachuber said this is too late to flush rewrite rules. What's the fix?
 //
 
-function rli_wpslidesjs_rewrite_flush()  {
-    rli_wpslides_create_rli_slide_post_type();
+function rli_slideshow_rewrite_flush()  {
+    rli_slideshow_create_rli_slide_post_type();
 
     flush_rewrite_rules();
 }
 
-register_activation_hook( __FILE__, 'rli_wpslidesjs_rewrite_flush' );
+register_activation_hook( __FILE__, 'rli_slideshow_rewrite_flush' );
 
 /*
  * Set up UI assets for File Attachment Uploader
  * @todo how are we using this?
  */
 
-function rli_wpslides_admin_scripts() {
-	wp_register_script('rli-wpslidesjs-admin', plugins_url('js/rli-wpslidesjs-admin.js', __FILE__ ), array('jquery','media-upload','thickbox'));
-	wp_enqueue_script('rli-wpslidesjs-admin');
+function rli_slideshow_admin_scripts() {
+	wp_register_script('rli-slideshow-admin', plugins_url('js/rli-wpslidesjs-admin.js', __FILE__ ), array('jquery','media-upload','thickbox'));
+	wp_enqueue_script('rli-slideshow-admin');
 }
 
-function rli_wpslides_admin_styles() {
+function rli_slideshow_admin_styles() {
 	wp_enqueue_style('thickbox');
 }
 
-function rli_wpslides_admin_assets() {
+function rli_slideshow_admin_assets() {
     global $post_type;
     if( 'rli_slide' == $post_type ) {
-	    rli_wpslides_admin_scripts();
-	    rli_wpslides_admin_styles();
+	    rli_slideshow_admin_scripts();
+	    rli_slideshow_admin_styles();
     }
 }
 
-add_action( 'admin_print_scripts-post-new.php', 'rli_wpslides_admin_assets', 11 );
-add_action( 'admin_print_scripts-post.php', 'rli_wpslides_admin_assets', 11 );
+add_action( 'admin_print_scripts-post-new.php', 'rli_slideshow_admin_assets', 11 );
+add_action( 'admin_print_scripts-post.php', 'rli_slideshow_admin_assets', 11 );
 
 /*
  * rli_slideshow_slide_editor_metabox_render( $post, $template )
@@ -152,35 +152,35 @@ function rli_slideshow_get_slide_template_options( $post, $template ) {
  * Generate html for Slide Settings Metabox
  */
 
-function rli_wpslidesjs_settings_metabox_render( $post ) {
+function rli_slideshow_settings_metabox_render( $post ) {
 
 	// retrieve existing values
-	$rli_wpslidesjs_primary_button_text = get_post_meta( $post->ID, '_rli_wpslidesjs_primary_button_text', true );
-	$rli_wpslidesjs_primary_button_uri = get_post_meta( $post->ID, '_rli_wpslidesjs_primary_button_uri', true );
-	$rli_wpslidesjs_secondary_button_text = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_text', true );
-	$rli_wpslidesjs_secondary_button_uri = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_uri', true );
-	$rli_wpslidesjs_secondary_button_color = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_color', true );
-	$rli_wpslidesjs_background_image = get_post_meta( $post->ID, '_rli_wpslidesjs_background_image', true );
-	$rli_wpslidesjs_foreground_image = get_post_meta( $post->ID, '_rli_wpslidesjs_foreground_image', true );
-	$rli_wpslidesjs_slide_header_toggle = get_post_meta( $post->ID, '_rli_wpslidesjs_slide_header_toggle', true );
+	$rli_slideshow_primary_button_text = get_post_meta( $post->ID, '_rli_slideshow_primary_button_text', true );
+	$rli_slideshow_primary_button_uri = get_post_meta( $post->ID, '_rli_slideshow_primary_button_uri', true );
+	$rli_slideshow_secondary_button_text = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_text', true );
+	$rli_slideshow_secondary_button_uri = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_uri', true );
+	$rli_slideshow_secondary_button_color = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_color', true );
+	$rli_slideshow_background_image = get_post_meta( $post->ID, '_rli_slideshow_background_image', true );
+	$rli_slideshow_foreground_image = get_post_meta( $post->ID, '_rli_slideshow_foreground_image', true );
+	$rli_slideshow_slide_header_toggle = get_post_meta( $post->ID, '_rli_slideshow_slide_header_toggle', true );
 
 	// render  inputs
 	echo "
 		<div>
 			<h4>Include Title?</h4>
-			<p><input type='checkbox' name='rli_wpslidesjs_slide_header_toggle' ";
-			if ( $rli_wpslidesjs_slide_header_toggle )
+			<p><input type='checkbox' name='rli_slideshow_slide_header_toggle' ";
+			if ( $rli_slideshow_slide_header_toggle )
 				echo "checked='checked' ";
 			echo "value='yes' /></p>
 			<h4>Primary Button</h4>
-			<p>Text: <input type='text' name='rli_wpslidesjs_primary_button_text' value='" . esc_attr( $rli_wpslidesjs_primary_button_text ) . "' /> <em class='how-to'>Defaults to &ldquo;Learn More&rdquo;.</em></p>
-			<p>Link address: <input type='text' name='rli_wpslidesjs_primary_button_uri' value='" . esc_attr( $rli_wpslidesjs_primary_button_uri ) . "' /> <strong><em class='how-to'>Required.</em></strong></p>
+			<p>Text: <input type='text' name='rli_slideshow_primary_button_text' value='" . esc_attr( $rli_slideshow_primary_button_text ) . "' /> <em class='how-to'>Defaults to &ldquo;Learn More&rdquo;.</em></p>
+			<p>Link address: <input type='text' name='rli_slideshow_primary_button_uri' value='" . esc_attr( $rli_slideshow_primary_button_uri ) . "' /> <strong><em class='how-to'>Required.</em></strong></p>
 			
 			<h4>Secondary Button</h4>
 			<p>This is optional, and will only be displayed if both the text and link fields are filled out.</p>
-			<p>Text: <input type='text' name='rli_wpslidesjs_secondary_button_text' value='" . esc_attr( $rli_wpslidesjs_secondary_button_text ) . "' /></p>
-			<p>Link address: <input type='text' name='rli_wpslidesjs_secondary_button_uri' value='" . esc_attr( $rli_wpslidesjs_secondary_button_uri ) . "' /></p>
-			<p>Background color: <input type='text' name='rli_wpslidesjs_secondary_button_color' value='" . esc_attr( $rli_wpslidesjs_secondary_button_color ) . "' /> <em class='how-to'>Must be in hexadecimal format including `#`. Defaults to &ldquo;#7b68ee&rdquo;.</em></p>
+			<p>Text: <input type='text' name='rli_slideshow_secondary_button_text' value='" . esc_attr( $rli_slideshow_secondary_button_text ) . "' /></p>
+			<p>Link address: <input type='text' name='rli_slideshow_secondary_button_uri' value='" . esc_attr( $rli_slideshow_secondary_button_uri ) . "' /></p>
+			<p>Background color: <input type='text' name='rli_slideshow_secondary_button_color' value='" . esc_attr( $rli_slideshow_secondary_button_color ) . "' /> <em class='how-to'>Must be in hexadecimal format including `#`. Defaults to &ldquo;#7b68ee&rdquo;.</em></p>
 
 			<h4>Background Image</h4>
 			<p><strong>Image must be 330 pixels high.</strong> The recommended width is 500 pixels.</p>
@@ -189,10 +189,10 @@ function rli_wpslidesjs_settings_metabox_render( $post ) {
 				<li>Click this button to upload or browse to an already uploaded file: <a class='button-secondary' id='rli-slide-choose-background'>Media Library</a></li>
 				<li>Select and copy the <strong>Link URL</strong> field of the PDF.</li>
 				<li>Close the Media Uploader screen.</li>
-				<li>Paste the issue's <strong>Link URL</strong> from the Media Upload screen in this box: <input style='background-color:#ddd;width:400px;' id='rli_slide_background_image_path' type='text' name='rli_wpslidesjs_background_image' value='" . esc_attr( $rli_wpslidesjs_background_image ) . "' /></li>
+				<li>Paste the issue's <strong>Link URL</strong> from the Media Upload screen in this box: <input style='background-color:#ddd;width:400px;' id='rli_slide_background_image_path' type='text' name='rli_slideshow_background_image' value='" . esc_attr( $rli_slideshow_background_image ) . "' /></li>
 			</ol>
 			<h4>Foreground Image</h4>
-			<p><input style='background-color:#ddd;width:400px;' id='rli_slide_foreground_image_path' type='text' name='rli_wpslidesjs_foreground_image' value='" . esc_attr( $rli_wpslidesjs_foreground_image ) . "' /></p>
+			<p><input style='background-color:#ddd;width:400px;' id='rli_slide_foreground_image_path' type='text' name='rli_slideshow_foreground_image' value='" . esc_attr( $rli_slideshow_foreground_image ) . "' /></p>
 		</div>";  
 
 }
@@ -201,65 +201,65 @@ function rli_wpslidesjs_settings_metabox_render( $post ) {
  * Create Settings Metabox
  */
 
-function rli_wpslidesjs_create_detail_metabox() {
-	add_meta_box( 'rli-slide-settings', 'Slide Settings', 'rli_wpslidesjs_settings_metabox_render', 'rli_slide', 'normal', 'high' );
+function rli_slideshow_create_detail_metabox() {
+	add_meta_box( 'rli-slide-settings', 'Slide Settings', 'rli_slideshow_settings_metabox_render', 'rli_slide', 'normal', 'high' );
 }
 
-add_action( 'add_meta_boxes', 'rli_wpslidesjs_create_detail_metabox' );
+add_action( 'add_meta_boxes', 'rli_slideshow_create_detail_metabox' );
 
 // save metabox data
 
-function rli_wpslidesjs_save_meta( $post_id ) {
+function rli_slideshow_save_meta( $post_id ) {
 
 	// include slide title toggle
-	if ( isset( $_POST['rli_wpslidesjs_slide_header_toggle'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_slide_header_toggle', strip_tags( $_POST['rli_wpslidesjs_slide_header_toggle'] ) );
+	if ( isset( $_POST['rli_slideshow_slide_header_toggle'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_slide_header_toggle', strip_tags( $_POST['rli_slideshow_slide_header_toggle'] ) );
 	} else { // default
-		update_post_meta( $post_id, '_rli_wpslidesjs_slide_header_toggle', false ); 
+		update_post_meta( $post_id, '_rli_slideshow_slide_header_toggle', false ); 
 	}
 
 	// primary button text
-	if ( isset( $_POST['rli_wpslidesjs_primary_button_text'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_primary_button_text', strip_tags( $_POST['rli_wpslidesjs_primary_button_text'] ) );
+	if ( isset( $_POST['rli_slideshow_primary_button_text'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_primary_button_text', strip_tags( $_POST['rli_slideshow_primary_button_text'] ) );
 	} else { // default
-		update_post_meta( $post_id, '_rli_wpslidesjs_primary_button_text', 'Learn More' );
+		update_post_meta( $post_id, '_rli_slideshow_primary_button_text', 'Learn More' );
 	}
 
 	// primary button uri
-	if ( isset( $_POST['rli_wpslidesjs_primary_button_uri'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_primary_button_uri', strip_tags( $_POST['rli_wpslidesjs_primary_button_uri'] ) );
+	if ( isset( $_POST['rli_slideshow_primary_button_uri'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_primary_button_uri', strip_tags( $_POST['rli_slideshow_primary_button_uri'] ) );
 	}
 
 	// secondary button text
-	if ( isset( $_POST['rli_wpslidesjs_secondary_button_text'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_text', strip_tags( $_POST['rli_wpslidesjs_secondary_button_text'] ) );
+	if ( isset( $_POST['rli_slideshow_secondary_button_text'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_secondary_button_text', strip_tags( $_POST['rli_slideshow_secondary_button_text'] ) );
 	}
 
 	// secondary button uri
-	if ( isset( $_POST['rli_wpslidesjs_secondary_button_uri'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_uri', strip_tags( $_POST['rli_wpslidesjs_secondary_button_uri'] ) );
+	if ( isset( $_POST['rli_slideshow_secondary_button_uri'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_secondary_button_uri', strip_tags( $_POST['rli_slideshow_secondary_button_uri'] ) );
 	}
 
 	// secondary button color
-	if ( isset( $_POST['rli_wpslidesjs_secondary_button_color'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_color', strip_tags( $_POST['rli_wpslidesjs_secondary_button_color'] ) );
+	if ( isset( $_POST['rli_slideshow_secondary_button_color'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_secondary_button_color', strip_tags( $_POST['rli_slideshow_secondary_button_color'] ) );
 	} else { // default
-		update_post_meta( $post_id, '_rli_wpslidesjs_secondary_button_color', '#7b68ee' );
+		update_post_meta( $post_id, '_rli_slideshow_secondary_button_color', '#7b68ee' );
 	}
 
 	// Background image
-	if ( isset( $_POST['rli_wpslidesjs_background_image'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_background_image', strip_tags( $_POST['rli_wpslidesjs_background_image'] ) );
+	if ( isset( $_POST['rli_slideshow_background_image'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_background_image', strip_tags( $_POST['rli_slideshow_background_image'] ) );
 	}
 
 	// Foreground image
-	if ( isset( $_POST['rli_wpslidesjs_foreground_image'] ) ) {
-		update_post_meta( $post_id, '_rli_wpslidesjs_foreground_image', strip_tags( $_POST['rli_wpslidesjs_foreground_image'] ) );
+	if ( isset( $_POST['rli_slideshow_foreground_image'] ) ) {
+		update_post_meta( $post_id, '_rli_slideshow_foreground_image', strip_tags( $_POST['rli_slideshow_foreground_image'] ) );
 	}
 
 }
 
-add_action( 'save_post', 'rli_wpslidesjs_save_meta' );
+add_action( 'save_post', 'rli_slideshow_save_meta' );
 
 /**
  * Modal Button.
@@ -300,14 +300,14 @@ function taxonomy_image_plugin_modal_button( $fields, $post ) {
 add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 20, 2 );
 
 /*
- *	rli_wpslidesjs_frontend_setup() to enqueue JS
+ *	rli_slideshow_frontend_setup() to enqueue JS
  *	Currently, this must be called manually in a theme template file 
  *	before the 'wp_head' action to avoid including it everywhere.
  *
  *	@todo Rethink this.
  */
 
-function rli_wpslidesjs_frontend_setup() {
+function rli_slideshow_frontend_setup() {
 	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery') );
 }
 
@@ -319,18 +319,18 @@ require_once ( plugin_dir_path( __FILE__ ) . 'display-slides.php' );
 
 
 // Support for direct manipulation with action hooks in theme templates
-add_action( 'rli_wpslides', 'rli_wpslidesjs_display_slideshow' );
+add_action( 'rli_wpslides', 'rli_slideshow_display_slideshow' );
 
 
 /*
- *	rli_wpslidesjs_register_shortcode() registers shortcode 
+ *	rli_slideshow_register_shortcode() registers shortcode 
  */
 
-function rli_wpslidesjs_register_shortcode() {
+function rli_slideshow_register_shortcode() {
 	add_shortcode( 'rli-slidshow', 'rli_slideshow_shortcode' );
 }
 
-add_action( 'init', 'rli_wpslidesjs_register_shortcode' );
+add_action( 'init', 'rli_slideshow_register_shortcode' );
 
 /*
  * rli_slideshow_shortcode() creates a shortcode to display a slideshow on demand
@@ -346,5 +346,5 @@ function rli_slideshow_shortcode( $atts ) {
 		) 
 	);
 
-	return rli_wpslidesjs_display_slideshow( $slideshow );
+	return rli_slideshow_display_slideshow( $slideshow );
 }

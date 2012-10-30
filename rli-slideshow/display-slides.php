@@ -1,14 +1,14 @@
 <?php
 
 /*
- *	rli_wpslidesjs_display_slideshow() builds and echos the slideshow
+ *	rli_slideshow_display_slideshow() builds and echos the slideshow
  * 
  *	@param $slideshow: A CURRENTLY NON-FUNCTIONAL name of the slideshow
  *	@todo support multiple slideshows saved by name.
  *	@todo make $default_background_path a generic option.
  */
 
-function rli_wpslidesjs_display_slideshow( $slideshow ) {
+function rli_slideshow_display_slideshow( $slideshow ) {
 	global $post;
 
 	$slides = new WP_Query(
@@ -55,14 +55,14 @@ function rli_wpslidesjs_display_slideshow( $slideshow ) {
 	    	$slides->the_post();
 			    	
 			// retrieve existing values
-			$primary_button_text = get_post_meta( $post->ID, '_rli_wpslidesjs_primary_button_text', true );
-			$primary_link = get_post_meta( $post->ID, '_rli_wpslidesjs_primary_button_uri', true );
-			$secondary_button_text = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_text', true );
-			$secondary_link = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_uri', true );
-			$secondary_color = get_post_meta( $post->ID, '_rli_wpslidesjs_secondary_button_color', true );
-			$background_image = get_post_meta( $post->ID, '_rli_wpslidesjs_background_image', true );
-			$foreground_image_path = get_post_meta( $post->ID, '_rli_wpslidesjs_foreground_image', true );
-			$include_title = get_post_meta( $post->ID, '_rli_wpslidesjs_slide_header_toggle', true );
+			$primary_button_text = get_post_meta( $post->ID, '_rli_slideshow_primary_button_text', true );
+			$primary_link = get_post_meta( $post->ID, '_rli_slideshow_primary_button_uri', true );
+			$secondary_button_text = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_text', true );
+			$secondary_link = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_uri', true );
+			$secondary_color = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_color', true );
+			$background_image = get_post_meta( $post->ID, '_rli_slideshow_background_image', true );
+			$foreground_image_path = get_post_meta( $post->ID, '_rli_slideshow_foreground_image', true );
+			$include_title = get_post_meta( $post->ID, '_rli_slideshow_slide_header_toggle', true );
 
 			// Misc Setup
 			$slide_classes = "";
