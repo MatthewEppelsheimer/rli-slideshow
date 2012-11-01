@@ -128,6 +128,14 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 			'description' => 'The slide\'s background image',
 			'help' => 'Defaults to the default image in settings.',
 			'css' => '%s { background-image: %s; }',
+			'css_params' => array( // maybe this should be the default.
+				'slide_id',
+				'data'
+			),
+			'slide_class' => array( // classes to append to the slide's wrapper div
+				'', // value if this setting is not blank
+				'default-background' // value if this setting is not blank
+			),
 			'setting_type' => 'string'
 		),
 		array(
@@ -138,13 +146,11 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 			'lookup' => 'the_content',
 			'html' => '<div class=\'%s\'>%s</div>',
 			'html_params' => array(
-				'slide-content',
-				'the_content'
+				'slide-content' // @TODO rethink this. Its kind of inflexible. 
 			),
 			'setting_type' => 'lookup'
 		)
 	);
-	return $template_keys;
 }
 
 /*
