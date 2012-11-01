@@ -116,6 +116,7 @@ function rli_slideshow_slide_editor_metabox_render( $post, $template = 'default'
  *
  * @param int $post - the global $post object
  * @param str $template - the slug name of the slide's template
+ * @todo replace $template_keys array declaration with function to return $template_keys by looking up $template
  */
 
 function rli_slideshow_get_slide_template_options( $post, $template ) {
@@ -144,8 +145,7 @@ function rli_slideshow_get_slide_template_options( $post, $template ) {
 			'html' => '<div class=\'%s\'>%s</div>'
 		)
 	);
-	$slide_options = get_post_meta( $post->ID, '_rli_slideshow_options', true );
-	// Where does the template come in?
+	return $template_keys;
 }
 
 /*
