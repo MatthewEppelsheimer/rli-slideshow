@@ -1,9 +1,124 @@
 <?php
+/**
+ *	Render html for a slide template part
+ *
+ *	@param	str	$template_part
+ *	@param	str	$data
+ *
+ *	@todo	support case where 'setting_type' is 'string'
+ */
+
+function rli_slideshow_render_slide_html_from_template( $template_part, $data ) {
+	$output = '';
+	switch ( $template_part['setting_type'] ) {
+
+		case 'lookup':
+			switch ( $template_part['lookup'] ) {
+				case 'the_content':
+					if ( isset( $template_part['html'] && isset( $template_part['html_params'] ) ) {
+						$output .= sprintf( $template_part['html'], $template_part['html_params'][0], the_content() );
+					} else {
+						$output .= the_content();
+					}
+					break;
+			}
+			break;
+
+		case 'string':
+			if ( isset( $template_part['html'] ) {
+				// @todo SUPPORTED IN FUTURE
+			}
+			break;
+	}
+	return $output;
+}
+
+/**
+ *	rli_slideshow_slide_template_convert_css_params()
+ *	
+ *	@description	Callback to prepare CSS Params for use by rli_slideshow_render_slide_css_from_template
+ *
+ *	@param	str	$param	The type of param from the template specification
+ *	@param	*	$data	The slide's setting value for the given slide template part
+ *
+ *	@return		CSS rule fragments (for later use with vsprintf)
+ */
+
+function rli_slideshow_slide_template_convert_css_params( $param, $data ) { 
+	global $post;
+
+	$converted_param = '';
+
+	switch ( $param ) {
+		case 'slide_id':
+			$converted_param = "#rli-slide-" . $post->ID;
+			break;
+		case 'data':
+			$converted_param = $data;
+			break;
+	}
+
+	return $converted_param;
+}
+
+
+/**
+ *	Render css for a slide template part
+ *
+ *	@uses	rli_slideshow_slide_template_convert_css_params()
+ *
+ *	@param	str	$template_part
+ *	@param	str	$data
+ */
+
+function rli_slideshow_render_slide_css_from_template( $template_part, $data ) {
+	global $post;
+
+	$output = '';
+
+	if ( ! isset( $template_part['css'] || ! isset( $template_part['css_params' ) )
+		return $output;
+
+	$css_constructor = array();
+	foreach ( $template_part['css'] as $param ) {
+		$css_constructor[] .= rli_slideshow_slide_template_convert_css_params( $param, $data );
+	}
+
+	$output .= vsprintf( $template_part['css'], $css_constructor );
+	return $output;
+}
+
+/**
+ *	Render slide class from a slide template part
+ *
+ *	@param	str	$template_part
+ *	@param	str	$data
+ *
+ *	@return	str		class to add to slide wrapper
+ */
+
+function rli_slideshow_render_slide_class_from_template( $template_part, $data ) {
+	$output = '';
+
+	if ( ! isset( $template_part['slide_class'] ) )
+		return $output;
+
+	if ( $data == '' ) {
+		$output .= $template_part['slide_class'][1];
+	} else {
+		$output .= $template_part['slide_class'][0];
+	}
+
+	$output .= ' '; // add single whitespace separator
+
+	return $output;
+}
 
 /*
  *	rli_slideshow_display_slideshow() builds and echos the slideshow
  * 
  *	@param $slideshow: A CURRENTLY NON-FUNCTIONAL name of the slideshow
+ *	@todo order slides
  *	@todo support multiple slideshows saved by name.
  *	@todo make $default_background_path a generic option.
  */
@@ -16,9 +131,11 @@ function rli_slideshow_display_slideshow( $slideshow ) {
 	if( $slides->have_posts() ) {
 
 		// @todo make this target a dynamic id
+		// @todo re-enable this after default background image is a setting
+		/*
 		$slide_styles = "\n<style type='text/css'>\ndiv#rli-slideshow div.default-background { background-image: url('$default_background_path');}\n";
-		$slide_output = "<div id='rli-slideshow' style='display:none;'>\n<div class='rli-slideshow-container'>\n";
-
+		*/
+		$slide_output = "<div class='rli-slideshow' style='display:none;'>\n<div class='rli-slideshow-container'>\n";
 
 		// Setup script
 		// @todo make this dynamic and option driven
@@ -44,19 +161,36 @@ function rli_slideshow_display_slideshow( $slideshow ) {
 
 		while ( $slides->have_posts() ) {
 	    	$slides->the_post();
-			    	
-			// retrieve existing values
-			$primary_button_text = get_post_meta( $post->ID, '_rli_slideshow_primary_button_text', true );
-			$primary_link = get_post_meta( $post->ID, '_rli_slideshow_primary_button_uri', true );
-			$secondary_button_text = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_text', true );
-			$secondary_link = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_uri', true );
-			$secondary_color = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_color', true );
-			$background_image = get_post_meta( $post->ID, '_rli_slideshow_background_image', true );
-			$foreground_image_path = get_post_meta( $post->ID, '_rli_slideshow_foreground_image', true );
-			$include_title = get_post_meta( $post->ID, '_rli_slideshow_slide_header_toggle', true );
 
-			// Misc Setup
-			$slide_classes = "";
+			// Load the slide's data
+			$slide_settings = get_post_meta( $post->ID, '_rli_slideshow_slide_settings', true );
+
+			// Get and store the template name.
+			if ( ! isset( $slide_settings['template'] ) ) 
+				$slide_settings['template'] = 'default';
+			$slide_template = $slide_settings['template'];
+
+			// Get the template
+			$template_specs = rli_slideshow_get_slide_template_specifications( $slide_template );
+
+			// Setup output variables
+			$slide_classes = $html = $css = "";
+
+			// @todo ORDER SLIDES
+
+			// Build the slide content, styles, and classes based on the template and slide data
+			foreach ( $template_specs as $setting ) {
+				$slug = $setting['slug'];
+				if ( ! isset( $slide_settings[$slug] ) )
+					$slide_settings[$slug] = '';
+				$html .= rli_slideshow_render_slide_html_from_template( $setting, $slide_settings[$slug] );
+				$css .= rli_slideshow_render_slide_css_from_template( $setting, $slide_settings[$slug] );
+				$slide_classes .= rli_slideshow_render_slide_class_from_template( $setting, $slide_settings[$slug] );
+			}
+
+
+
+		/*				OLD CODE			*/
 
 			// Setup background
 			if ( $background_image != "" ) {
