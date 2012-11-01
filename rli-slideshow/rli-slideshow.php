@@ -219,17 +219,18 @@ function rli_slideshow_create_detail_metabox() {
 
 add_action( 'add_meta_boxes', 'rli_slideshow_create_detail_metabox' );
 
-// save metabox data
 /**
- *	rli_slideshow_save_slide_meta
- *	@todo extend to detect slide's template and base this on it. 
+ *	Save slide settings metabox data
+ *	rli_slideshow_save_slide_meta()
+ *
+ *	@todo	Extend to detect slide's template and base this on it. 
+ *	@todo	Handle default settings
  */
 
 function rli_slideshow_save_slide_meta( $post_id ) {
+	$slide_settings = get_post_meta( $post_id, '_rli_slideshow_slide_settings', true );
 
 	$template_specs = rli_slideshow_get_slide_template_specifications( 'default' );
-
-	$slide_settings = get_post_meta( $post_id, '_rli_slideshow_slide_settings', true );
 
 	foreach ( $template_specs as $specification ) {
 		switch ( $specification['setting_type'] ) {
@@ -237,70 +238,15 @@ function rli_slideshow_save_slide_meta( $post_id ) {
 				break;
 			case 'string':
 				if ( isset( $_POST["rli_slideshow_slide_$specification['slug']"] ) ) 
-					$slide_settings["$specification['slug']"] => $_POST["rli_slideshow_slide_$specification['slug']"];
-	
-
-	switch ( $pattern['setting_type'] ) {
-		case 'lookup':
-			break;
-		case 'string':
-			$output .= "<h4>$pattern['name']</h4>\n";
-			$output .= "<input type='text' name='rli_slideshow_$setting' value='" . esc_attr( $value ) . "' />";
-			if ( isset( $pattern['help'] ) ) {
-				$output .= " <em class='how-to'>$pattern['help']</em>\n";
-			} else {
-				$output .= "\n";
-			}
-			break;
+					$slide_settings["$specification['slug']"] => strip_tags( $_POST["rli_slideshow_slide_$specification['slug']"] );
+				break;
+		}
 	}
 
-	return $output;
+	// a temporary measure
+	$slide_settings['template'] => 'default';
 
-	// include slide title toggle
-	if ( isset( $_POST['rli_slideshow_slide_header_toggle'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_slide_header_toggle', strip_tags( $_POST['rli_slideshow_slide_header_toggle'] ) );
-	} else { // default
-		update_post_meta( $post_id, '_rli_slideshow_slide_header_toggle', false ); 
-	}
-
-	// primary button text
-	if ( isset( $_POST['rli_slideshow_primary_button_text'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_primary_button_text', strip_tags( $_POST['rli_slideshow_primary_button_text'] ) );
-	} else { // default
-		update_post_meta( $post_id, '_rli_slideshow_primary_button_text', 'Learn More' );
-	}
-
-	// primary button uri
-	if ( isset( $_POST['rli_slideshow_primary_button_uri'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_primary_button_uri', strip_tags( $_POST['rli_slideshow_primary_button_uri'] ) );
-	}
-
-	// secondary button text
-	if ( isset( $_POST['rli_slideshow_secondary_button_text'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_secondary_button_text', strip_tags( $_POST['rli_slideshow_secondary_button_text'] ) );
-	}
-
-	// secondary button uri
-	if ( isset( $_POST['rli_slideshow_secondary_button_uri'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_secondary_button_uri', strip_tags( $_POST['rli_slideshow_secondary_button_uri'] ) );
-	}
-
-	// secondary button color
-	if ( isset( $_POST['rli_slideshow_secondary_button_color'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_secondary_button_color', strip_tags( $_POST['rli_slideshow_secondary_button_color'] ) );
-	} else { // default
-		update_post_meta( $post_id, '_rli_slideshow_secondary_button_color', '#7b68ee' );
-	}
-
-	// Background image
-	if ( isset( $_POST['rli_slideshow_background_image'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_background_image', strip_tags( $_POST['rli_slideshow_background_image'] ) );
-	}
-
-	// Foreground image
-	if ( isset( $_POST['rli_slideshow_foreground_image'] ) ) {
-		update_post_meta( $post_id, '_rli_slideshow_foreground_image', strip_tags( $_POST['rli_slideshow_foreground_image'] ) );
-	}
+	update_post_meta( $post_id, '_rli_slideshow_slide_settings', $slide_settings );
 
 }
 
