@@ -309,43 +309,6 @@ function rli_slideshow_frontend_setup() {
 	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery') );
 }
 
-/*
- *	Pull in assets for slidshow display
- */
-
-require_once ( plugin_dir_path( __FILE__ ) . 'display-slides.php' );
-
-// Support for direct manipulation with action hooks in theme templates
-add_action( 'rli_wpslides', 'rli_slideshow_display_slideshow' );
-
-
-/*
- *	rli_slideshow_register_shortcode() registers shortcode 
- */
-
-function rli_slideshow_register_shortcode() {
-	add_shortcode( 'rli-slidshow', 'rli_slideshow_shortcode' );
-}
-
-add_action( 'init', 'rli_slideshow_register_shortcode' );
-
-/*
- * rli_slideshow_shortcode() creates a shortcode to display a slideshow on demand
- */
-
-function rli_slideshow_shortcode( $atts ) {
-	extract( 
-		shortcode_atts( 
-			array(
-				'slideshow' => 'default'
-			), 
-			$atts 
-		) 
-	);
-
-	return rli_slideshow_display_slideshow( $slideshow );
-}
-
 /**
  * RLI Utility to get get custom posts of a given type
  *
@@ -388,5 +351,42 @@ if ( ! function_exists( 'rli_library_get_custom_posts' ) {
 
 function rli_slideshow_get_slides( $args = array() ) {
 	return rli_library_get_custom_posts( 'rli_slide', $args );
+}
+
+/*
+ *	Pull in assets for slidshow display
+ */
+
+require_once ( plugin_dir_path( __FILE__ ) . 'display-slides.php' );
+
+// Support for direct manipulation with action hooks in theme templates
+add_action( 'rli_wpslides', 'rli_slideshow_display_slideshow' );
+
+
+/*
+ *	rli_slideshow_register_shortcode() registers shortcode 
+ */
+
+function rli_slideshow_register_shortcode() {
+	add_shortcode( 'rli-slidshow', 'rli_slideshow_shortcode' );
+}
+
+add_action( 'init', 'rli_slideshow_register_shortcode' );
+
+/*
+ * rli_slideshow_shortcode() creates a shortcode to display a slideshow on demand
+ */
+
+function rli_slideshow_shortcode( $atts ) {
+	extract( 
+		shortcode_atts( 
+			array(
+				'slideshow' => 'default'
+			), 
+			$atts 
+		) 
+	);
+
+	return rli_slideshow_display_slideshow( $slideshow );
 }
 
