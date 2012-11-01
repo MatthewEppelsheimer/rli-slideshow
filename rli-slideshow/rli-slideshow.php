@@ -386,7 +386,7 @@ if ( ! function_exists( 'rli_library_get_custom_posts' ) {
  *	@since		version 0.4
  */
 
-function rli_slideshow_get_slides( $args ) {
+function rli_slideshow_get_slides( $args = array() ) {
 	return rli_library_get_custom_posts( 'rli_slide', $args );
 }
 
