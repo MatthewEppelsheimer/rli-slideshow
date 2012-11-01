@@ -161,7 +161,7 @@ function rli_slideshow_render_setting_from_template( $setting, $value, $template
 	$output = "";
 
 	foreach ( $template_specs as $specification ) {
-		if $specification['slug'] == $setting
+		if ( $specification['slug'] == $setting )
 			$pattern = $specification;
 	}
 
@@ -169,10 +169,10 @@ function rli_slideshow_render_setting_from_template( $setting, $value, $template
 		case 'lookup':
 			break;
 		case 'string':
-			$output .= "<h4>$pattern['name']</h4>\n";
-			$output .= "<input type='text' name='rli_slideshow_slide_$setting' value='" . esc_attr( $value ) . "' />";
+			$output .= "<h4>" . $pattern['name'] . "</h4>\n";
+			$output .= "<input type='text' name='rli_slideshow_slide_" . $setting . "' value='" . esc_attr( $value ) . "' />";
 			if ( isset( $pattern['help'] ) ) {
-				$output .= " <em class='how-to'>$pattern['help']</em>\n";
+				$output .= " <em class='how-to'>" . $pattern['help'] . "</em>\n";
 			} else {
 				$output .= "\n";
 			}
@@ -191,8 +191,8 @@ function rli_slideshow_settings_metabox_render( $post ) {
 
 	$slide_settings = get_post_meta( $post->ID, '_rli_slideshow_slide_settings', true );
 
-	if ( ! isset( $slide_settings['template'] ) 
-		$slide_settings['template'] => 'default';
+	if ( ! isset( $slide_settings['template'] ) ) 
+		$slide_settings['template'] = 'default';
 	$slide_template = $slide_settings['template'];
 	unset( $slide_settings['template'] );
 
@@ -237,14 +237,15 @@ function rli_slideshow_save_slide_meta( $post_id ) {
 			case 'lookup':
 				break;
 			case 'string':
-				if ( isset( $_POST["rli_slideshow_slide_$specification['slug']"] ) ) 
-					$slide_settings["$specification['slug']"] => strip_tags( $_POST["rli_slideshow_slide_$specification['slug']"] );
+				$str = "rli_slideshow_slide_" . $specification['slug'];
+				if ( isset( $_POST[$str] ) ) 
+					$slide_settings[$specification['slug']] = strip_tags( $_POST[$str] );
 				break;
 		}
 	}
 
 	// a temporary measure
-	$slide_settings['template'] => 'default';
+	$slide_settings['template'] = 'default';
 
 	update_post_meta( $post_id, '_rli_slideshow_slide_settings', $slide_settings );
 
