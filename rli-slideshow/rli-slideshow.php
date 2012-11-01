@@ -126,7 +126,7 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 			'order' => 0,
 			'name' => 'Background Image',
 			'description' => 'The slide\'s background image',
-			'help' => 'Defaults to the default image in settings',
+			'help' => 'Defaults to the default image in settings.',
 			'css' => '%s { background-image: %s; }',
 			'setting_type' => 'string'
 		),
