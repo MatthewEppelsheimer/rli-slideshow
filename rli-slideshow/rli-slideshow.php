@@ -325,21 +325,21 @@ function rli_slideshow_modal_button( $fields, $post ) {
 	if ( isset( $fields['image-size'] ) && isset( $post->ID ) ) {
 		$image_id = (int) $post->ID;
 
-		$o = '<div class="taxonomy-image-modal-control" id="' . esc_attr( 'taxonomy-image-modal-control-' . $image_id ) . '">';
+		$o = '<div class="rli-slideshow-modal-control" id="' . esc_attr( 'rli-slideshow-modal-control-' . $image_id ) . '">';
 
-		$o.= '<span class="button create-association">' . sprintf( esc_html__( 'Associate with %1$s', 'taxonomy-images' ), '<span class="term-name">' . esc_html__( 'this term', 'taxonomy-images' ) . '</span>' ) . '</span>';
+		$o.= '<span class="button create-association">' . sprintf( esc_html__( 'Associate with %1$s', 'rli-slideshows' ), '<span class="term-name">' . esc_html__( 'this term', 'rli-slideshows' ) . '</span>' ) . '</span>';
 
-		$o.= '<span class="remove-association">' . sprintf( esc_html__( 'Remove association with %1$s', 'taxonomy-images' ), '<span class="term-name">' . esc_html__( 'this term', 'taxonomy-images' ) . '</span>' ) . '</span>';
+		$o.= '<span class="remove-association">' . sprintf( esc_html__( 'Remove association with %1$s', 'rli-slideshows' ), '<span class="term-name">' . esc_html__( 'this term', 'rli-slideshows' ) . '</span>' ) . '</span>';
 
-		$o.= '<input class="taxonomy-image-button-image-id" name="' . esc_attr( 'taxonomy-image-button-image-id-' . $image_id ) . '" type="hidden" value="' . esc_attr( $image_id ) . '" />';
+		$o.= '<input class="rli-slideshow-button-image-id" name="' . esc_attr( 'rli-slideshow-button-image-id-' . $image_id ) . '" type="hidden" value="' . esc_attr( $image_id ) . '" />';
 
-		$o.= '<input class="taxonomy-image-button-nonce-create" name="' . esc_attr( 'taxonomy-image-button-nonce-create-' . $image_id ) . '" type="hidden" value="' . esc_attr( wp_create_nonce( 'taxonomy-image-plugin-create-association' ) ) . '" />';
+		$o.= '<input class="rli-slideshow-button-nonce-create" name="' . esc_attr( 'rli-slideshow-button-nonce-create-' . $image_id ) . '" type="hidden" value="' . esc_attr( wp_create_nonce( 'rli-slideshow-plugin-create-association' ) ) . '" />';
 
-		$o.= '<input class="taxonomy-image-button-nonce-remove" name="' . esc_attr( 'taxonomy-image-button-nonce-remove-' . $image_id ) . '" type="hidden" value="' . esc_attr( wp_create_nonce( 'taxonomy-image-plugin-remove-association' ) ) . '" />';
+		$o.= '<input class="rli-slideshow-button-nonce-remove" name="' . esc_attr( 'rli-slideshow-button-nonce-remove-' . $image_id ) . '" type="hidden" value="' . esc_attr( wp_create_nonce( 'rli-slideshow-plugin-remove-association' ) ) . '" />';
 
 		$o.= '</div>';
 
-		$fields['image-size']['extra_rows']['taxonomy-image-plugin-button']['html'] = $o; }
+		$fields['image-size']['extra_rows']['rli-slideshow-plugin-button']['html'] = $o; }
 	return $fields;
 }
 
