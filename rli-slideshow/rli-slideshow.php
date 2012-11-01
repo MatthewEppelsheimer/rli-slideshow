@@ -310,6 +310,7 @@ add_action( 'save_post', 'rli_slideshow_save_meta' );
  * Modal Button.
  *
  * Create a button in the modal media window to associate the current image with the slide.
+ * @from      Taxonomy Images Plugin by Michael Fields
  *
  * @param     array     Multidimensional array representing the images form.
  * @param     stdClass  WordPress post object.
@@ -320,7 +321,7 @@ add_action( 'save_post', 'rli_slideshow_save_meta' );
  * @alter     0.7
  */
 
-function taxonomy_image_plugin_modal_button( $fields, $post ) {
+function rli_slideshow_modal_button( $fields, $post ) {
 	if ( isset( $fields['image-size'] ) && isset( $post->ID ) ) {
 		$image_id = (int) $post->ID;
 
@@ -342,7 +343,7 @@ function taxonomy_image_plugin_modal_button( $fields, $post ) {
 	return $fields;
 }
 
-add_filter( 'attachment_fields_to_edit', 'taxonomy_image_plugin_modal_button', 20, 2 );
+add_filter( 'attachment_fields_to_edit', 'rli_slideshow_modal_button', 20, 2 );
 
 /*
  *	rli_slideshow_frontend_setup() to enqueue JS
