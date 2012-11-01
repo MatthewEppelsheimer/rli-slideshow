@@ -10,6 +10,38 @@ Adds a shortcut function to WordPress to create Slides JS slideshow from posts o
 
 == Description ==
 
+/**
+ *	@todo  
+ *
+ *	Working on for Version 0.4: 
+		[ ] a default slide template for rendering that replaces display-slides.php
+		[ ] mechanism for extending slide options in the backend per site, using filters
+		[x] cleanup cruft
+		[ ] completely genericized
+
+ *	Targeted for 0.5: 
+		[ ] Create custom template builder
+		[ ] consider making templates object-oriented
+ *
+ *	Targeted for 0.6: 
+		[ ] Multiple slideshow support in the backend
+		[ ] call rli_wpslidesjs_frontend_setup() dynamically
+
+ *
+ *	Targeted for 0.7: 
+		[ ] Code documentation, code cleanup
+		- add consistent textdomain params to __() uses
+		- around global #pagenow, pass $hook and do stuff based on that, rather than doing the crazy-specific action hook. 
+		- in rli_wpslidesjs_save_meta(), an option to cleanup using delete_post_meta
+		- Backend menu icons for slides and slideshows
+		- Daniel's suggestsion within rli_wpslidesjs_save_meta is to (within global scope) setup arrays of string values to work on using foreach loops, rather than the repetetive isset() stuff. 
+		- Review use of thickbox media uploader
+
+ *	Targeted for 0.8: 
+		- [Premium] Backend slideshow builder 
+		- [Premium] Multiple slideshow support per page in the front-end
+ */
+
 NOTE THIS FILE REQUIRES UPDATING. IT REFLECTS THE ORIGINAL PLUGIN VERSION.
 
 WP-SlidesJS adds `wp-slidesjs` shortcut function to WordPress in order to create [Slides JS](http://slidesjs.com/ "Slides JS") slideshow from posts of a category.
