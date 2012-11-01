@@ -191,16 +191,21 @@ function rli_slideshow_settings_metabox_render( $post ) {
 
 	$slide_settings = get_post_meta( $post->ID, '_rli_slideshow_slide_settings', true );
 
+	// Get and store the template name.
 	if ( ! isset( $slide_settings['template'] ) ) 
 		$slide_settings['template'] = 'default';
 	$slide_template = $slide_settings['template'];
-	unset( $slide_settings['template'] );
+
+	$template_specs = rli_slideshow_get_slide_template_specifications( $slide_template );
 
 	$output = "<div>\n";
 
-	foreach ( $slide_template as $setting ) {
+	// Build the settings form based on the template specifications
+	foreach ( $template_specs as $setting ) {
 		$slug = $setting['slug'];
-		$output .= rli_slideshow_render_setting_from_template( $slug, $slide_setting[$slug], $slide_template );
+		if ( ! isset( $slide_settings[$slug] ) )
+			$slide_settings[$slug] = '';
+		$output .= rli_slideshow_render_setting_from_template( $slug, $slide_settings[$slug], $slide_template );
 	}
 
 	$output .="</div>\n";
@@ -251,7 +256,7 @@ function rli_slideshow_save_slide_meta( $post_id ) {
 
 }
 
-add_action( 'save_post', 'rli_slideshow_save_meta' );
+add_action( 'save_post', 'rli_slideshow_save_slide_meta' );
 
 /**
  * Modal Button.
