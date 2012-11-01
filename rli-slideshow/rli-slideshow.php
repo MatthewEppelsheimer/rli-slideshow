@@ -114,12 +114,11 @@ function rli_slideshow_slide_editor_metabox_render( $post, $template = 'default'
  * rli_slideshow_get_slide_template_options( $template )
  * Returns option keys and values associated with the given slideshow template
  *
- * @param int $post - the global $post object
  * @param str $template - the slug name of the slide's template
  * @todo replace $template_keys array declaration with function to return $template_keys by looking up $template
  */
 
-function rli_slideshow_get_slide_template_options( $post, $template ) {
+function rli_slideshow_get_slide_template_specifications( $template ) {
 	// @todo replace this with a function to return $template_keys by looking up the template
 	$template_keys = array(
 		array(
@@ -128,74 +127,87 @@ function rli_slideshow_get_slide_template_options( $post, $template ) {
 			'name' => 'Background Image',
 			'description' => 'The slide\'s background image',
 			'help' => 'Defaults to the default image in settings',
-			'css' => '%s { background-image: %s; }'
+			'css' => '%s { background-image: %s; }',
+			'setting_type' => 'string'
 		),
 		array(
 			'slug' => 'content',
 			'order' => 1,
+			'name' => 'Slide Content',
 			'description' => 'The slide\'s content, based on the editor box',
 			'lookup' => 'the_content',
-			'html' => '<div class=\'%s\'>%s</div>'
-		),
-		array(
-			'slug' => 'link_text',
-			'parameter' => true,
-			'description' => 'The slide\'s content, based on the editor box',
-			'lookup' => 'the_content',
-			'html' => '<div class=\'%s\'>%s</div>'
+			'html' => '<div class=\'%s\'>%s</div>',
+			'html_params' => array(
+				'slide-content',
+				'the_content'
+			),
+			'setting_type' => 'lookup'
 		)
 	);
 	return $template_keys;
 }
 
 /*
+ *	rli_slideshow_render_setting_from_template( $setting, $value, $template )
+ *	@param str $setting - setting name (slug)
+ *	@param str $value - setting value
+ *	@param str $template - template name
+ */
+
+function rli_slideshow_render_setting_from_template( $setting, $value, $template ) {
+	$template_specs = rli_slideshow_get_slide_template_specifications( $template );
+
+	$pattern;
+	$output = "";
+
+	foreach ( $template_specs as $specification ) {
+		if $specification['slug'] == $setting
+			$pattern = $specification;
+	}
+
+	switch ( $pattern['setting_type'] ) {
+		case 'lookup':
+			break;
+		case 'string':
+			$output .= "<h4>$pattern['name']</h4>\n";
+			$output .= "<input type='text' name='rli_slideshow_slide_$setting' value='" . esc_attr( $value ) . "' />";
+			if ( isset( $pattern['help'] ) ) {
+				$output .= " <em class='how-to'>$pattern['help']</em>\n";
+			} else {
+				$output .= "\n";
+			}
+			break;
+	}
+
+	return $output;
+}
+
+/*
  * Generate html for Slide Settings Metabox
+ *	@todo before the foreach loop, order the $slide_template array by 'order'
  */
 
 function rli_slideshow_settings_metabox_render( $post ) {
 
-	// retrieve existing values
-	$rli_slideshow_primary_button_text = get_post_meta( $post->ID, '_rli_slideshow_primary_button_text', true );
-	$rli_slideshow_primary_button_uri = get_post_meta( $post->ID, '_rli_slideshow_primary_button_uri', true );
-	$rli_slideshow_secondary_button_text = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_text', true );
-	$rli_slideshow_secondary_button_uri = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_uri', true );
-	$rli_slideshow_secondary_button_color = get_post_meta( $post->ID, '_rli_slideshow_secondary_button_color', true );
-	$rli_slideshow_background_image = get_post_meta( $post->ID, '_rli_slideshow_background_image', true );
-	$rli_slideshow_foreground_image = get_post_meta( $post->ID, '_rli_slideshow_foreground_image', true );
-	$rli_slideshow_slide_header_toggle = get_post_meta( $post->ID, '_rli_slideshow_slide_header_toggle', true );
+	$slide_settings = get_post_meta( $post->ID, '_rli_slideshow_slide_settings', true );
 
-	// render  inputs
-	echo "
-		<div>
-			<h4>Include Title?</h4>
-			<p><input type='checkbox' name='rli_slideshow_slide_header_toggle' ";
-			if ( $rli_slideshow_slide_header_toggle )
-				echo "checked='checked' ";
-			echo "value='yes' /></p>
-			<h4>Primary Button</h4>
-			<p>Text: <input type='text' name='rli_slideshow_primary_button_text' value='" . esc_attr( $rli_slideshow_primary_button_text ) . "' /> <em class='how-to'>Defaults to &ldquo;Learn More&rdquo;.</em></p>
-			<p>Link address: <input type='text' name='rli_slideshow_primary_button_uri' value='" . esc_attr( $rli_slideshow_primary_button_uri ) . "' /> <strong><em class='how-to'>Required.</em></strong></p>
-			
-			<h4>Secondary Button</h4>
-			<p>This is optional, and will only be displayed if both the text and link fields are filled out.</p>
-			<p>Text: <input type='text' name='rli_slideshow_secondary_button_text' value='" . esc_attr( $rli_slideshow_secondary_button_text ) . "' /></p>
-			<p>Link address: <input type='text' name='rli_slideshow_secondary_button_uri' value='" . esc_attr( $rli_slideshow_secondary_button_uri ) . "' /></p>
-			<p>Background color: <input type='text' name='rli_slideshow_secondary_button_color' value='" . esc_attr( $rli_slideshow_secondary_button_color ) . "' /> <em class='how-to'>Must be in hexadecimal format including `#`. Defaults to &ldquo;#7b68ee&rdquo;.</em></p>
+	if ( ! isset( $slide_settings['template'] ) 
+		$slide_settings['template'] => 'default';
+	$slide_template = $slide_settings['template'];
+	unset( $slide_settings['template'] );
 
-			<h4>Background Image</h4>
-			<p><strong>Image must be 330 pixels high.</strong> The recommended width is 500 pixels.</p>
-			<p>To select a background image:</p>
-			<ol>
-				<li>Click this button to upload or browse to an already uploaded file: <a class='button-secondary' id='rli-slide-choose-background'>Media Library</a></li>
-				<li>Select and copy the <strong>Link URL</strong> field of the PDF.</li>
-				<li>Close the Media Uploader screen.</li>
-				<li>Paste the issue's <strong>Link URL</strong> from the Media Upload screen in this box: <input style='background-color:#ddd;width:400px;' id='rli_slide_background_image_path' type='text' name='rli_slideshow_background_image' value='" . esc_attr( $rli_slideshow_background_image ) . "' /></li>
-			</ol>
-			<h4>Foreground Image</h4>
-			<p><input style='background-color:#ddd;width:400px;' id='rli_slide_foreground_image_path' type='text' name='rli_slideshow_foreground_image' value='" . esc_attr( $rli_slideshow_foreground_image ) . "' /></p>
-		</div>";  
+	$output = "<div>\n";
 
+	foreach ( $slide_template as $setting ) {
+		$slug = $setting['slug'];
+		$output .= rli_slideshow_render_setting_from_template( $slug, $slide_setting[$slug], $slide_template );
+	}
+
+	$output .="</div>\n";
+
+	echo $output;
 }
+
 
 /*
  * Create Settings Metabox
@@ -208,8 +220,41 @@ function rli_slideshow_create_detail_metabox() {
 add_action( 'add_meta_boxes', 'rli_slideshow_create_detail_metabox' );
 
 // save metabox data
+/**
+ *	rli_slideshow_save_slide_meta
+ *	@todo extend to detect slide's template and base this on it. 
+ */
 
-function rli_slideshow_save_meta( $post_id ) {
+function rli_slideshow_save_slide_meta( $post_id ) {
+
+	$template_specs = rli_slideshow_get_slide_template_specifications( 'default' );
+
+	$slide_settings = get_post_meta( $post_id, '_rli_slideshow_slide_settings', true );
+
+	foreach ( $template_specs as $specification ) {
+		switch ( $specification['setting_type'] ) {
+			case 'lookup':
+				break;
+			case 'string':
+				if ( isset( $_POST["rli_slideshow_slide_$specification['slug']"] ) ) 
+					$slide_settings["$specification['slug']"] => $_POST["rli_slideshow_slide_$specification['slug']"];
+	
+
+	switch ( $pattern['setting_type'] ) {
+		case 'lookup':
+			break;
+		case 'string':
+			$output .= "<h4>$pattern['name']</h4>\n";
+			$output .= "<input type='text' name='rli_slideshow_$setting' value='" . esc_attr( $value ) . "' />";
+			if ( isset( $pattern['help'] ) ) {
+				$output .= " <em class='how-to'>$pattern['help']</em>\n";
+			} else {
+				$output .= "\n";
+			}
+			break;
+	}
+
+	return $output;
 
 	// include slide title toggle
 	if ( isset( $_POST['rli_slideshow_slide_header_toggle'] ) ) {
