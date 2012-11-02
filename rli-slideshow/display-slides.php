@@ -15,7 +15,7 @@ function rli_slideshow_render_slide_html_from_template( $template_part, $data ) 
 		case 'lookup':
 			switch ( $template_part['lookup'] ) {
 				case 'the_content':
-					if ( isset( $template_part['html'] && isset( $template_part['html_params'] ) ) {
+					if ( isset( $template_part['html'] ) && isset( $template_part['html_params'] ) ) {
 						$output .= sprintf( $template_part['html'], $template_part['html_params'][0], the_content() );
 					} else {
 						$output .= the_content();
@@ -25,7 +25,7 @@ function rli_slideshow_render_slide_html_from_template( $template_part, $data ) 
 			break;
 
 		case 'string':
-			if ( isset( $template_part['html'] ) {
+			if ( isset( $template_part['html'] ) ) {
 				// @todo SUPPORTED IN FUTURE
 			}
 			break;
@@ -76,7 +76,7 @@ function rli_slideshow_render_slide_css_from_template( $template_part, $data ) {
 
 	$output = '';
 
-	if ( ! isset( $template_part['css'] || ! isset( $template_part['css_params' ) )
+	if ( ! isset( $template_part['css'] ) || ! isset( $template_part['css_params'] ) )
 		return $output;
 
 	$css_constructor = array();
