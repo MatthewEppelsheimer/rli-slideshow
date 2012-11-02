@@ -51,7 +51,7 @@ function rli_slideshow_slide_template_convert_css_params( $param, $data ) {
 
 	switch ( $param ) {
 		case 'slide_id':
-			$converted_param = "#rli-slide-" . $post->ID;
+			$converted_param = ".rli-slide-" . $post->ID;
 			break;
 		case 'data':
 			$converted_param = $data;
@@ -130,17 +130,13 @@ function rli_slideshow_display_slideshow( $slideshow ) {
 
 	if( $slides->have_posts() ) {
 
-		// @todo make this target a dynamic id
-		// @todo re-enable this after default background image is a setting
-		/*
-		$slide_styles = "\n<style type='text/css'>\ndiv#rli-slideshow div.default-background { background-image: url('$default_background_path');}\n";
-		*/
-		$slide_output = "<div class='rli-slideshow' style='display:none;'>\n<div class='rli-slideshow-container'>\n";
+		// @todo Prepare default slideshow-wide CSS rules, such as default background rules.
+
+		$slide_output = $slide_styles = "";
 
 		// Setup script
 		// @todo make this dynamic and option driven
-		// @todo move this out of the display loop; do this only once per page so it applies just once to every slideshow on the page
-		// @todo make id targeting dynamie
+		// @todo target the specific slideshow by ID
 		$slide_script = "
 			\n<script type='text/javascript'>
 				jQuery(document).ready(function($) {
@@ -162,6 +158,9 @@ function rli_slideshow_display_slideshow( $slideshow ) {
 		while ( $slides->have_posts() ) {
 	    	$slides->the_post();
 
+			// Setup output variables
+			$slide_classes = $html = $css = "";
+
 			// Load the slide's data
 			$slide_settings = get_post_meta( $post->ID, '_rli_slideshow_slide_settings', true );
 
@@ -172,9 +171,6 @@ function rli_slideshow_display_slideshow( $slideshow ) {
 
 			// Get the template
 			$template_specs = rli_slideshow_get_slide_template_specifications( $slide_template );
-
-			// Setup output variables
-			$slide_classes = $html = $css = "";
 
 			// @todo ORDER SLIDES
 
@@ -188,71 +184,19 @@ function rli_slideshow_display_slideshow( $slideshow ) {
 				$slide_classes .= rli_slideshow_render_slide_class_from_template( $setting, $slide_settings[$slug] );
 			}
 
-
-
-		/*				OLD CODE			*/
-
-			// Setup background
-			if ( $background_image != "" ) {
-				$slide_styles .= "#rli-slide-" . $post->ID . " { background-image:url('" . $background_image . "'); }\n";
-			} else {
-				$slide_classes .= "default-background ";
-			}
-
-			// Setup foreground
-			$foreground = '';
-			if ( $foreground_image_path != "" ) 
-				$foreground = "<img src='$foreground_image_path' />\n";
-
-			// Setup for title
-			// This will later be implemented as an option (and/or as a filter)
-			$title_element = 'h2';
-			if ( $primary_link != '' ) {
-				$title = "<$title_element><a href='$primary_link'>" . the_title( '', '', false ) ."</a></$title_element>\n";
-			} else {
-				$title = "<$title_element>" . the_title( '', '', false ) ."</$title_element>\n";
-			}
-
-			if ( ! $include_title ) 
-				$title = '';
-
-			// Setup for links
-			$first_link = $second_link = "";
-			if ( $primary_link != '' ) 
-				$first_link = "<p class='first-link'><a href='$primary_link' class='primary'>$primary_button_text</a></p>\n";
-			if ( $secondary_link != '' ) 
-				$second_link = "<p class='second-cta'><a href='$secondary_link' class='secondary'>$secondary_button_text</a></p>\n";
-
-			// Setup special message
-			$common_message = "<p class='rli-slide-common'>Call us at <strong>(503) 482-9011</strong></p>\n";
+			$slide_styles .= $css;
 
 	    	$slide_output .= "
-				<div class='rli-slide $slide_classes' id='rli-slide-" . $post->ID ."'>\n";
-			if ( $foreground != '' ) $slide_output .=
-					"<div class='rli-slide-foreground'>\n
-						$foreground
-					</div>";
-			$slide_output .=
-					"<div class='rli-slide-content'>\n
-						$title
-						" . apply_filters( 'the_content', get_the_content() ) . "\n
-						$first_link
-						$second_link
-					</div>\n";
-			if ( $common_message != '' ) $slide_output .=
-					"$common_message";
-			$slide_output .=
-				"</div>\n";
-
+				<div class='rli-slide rli-slide-" . $post->ID ." $slide_classes' >
+					$html
+				</div>\n";
 		}
 
 		// echo styles
-		$slide_styles .= "</style>\n";
-		echo $slide_styles;
+		echo "<style type='text/css'>\n$slide_styles</style>\n";
 
 		// echo html
-		$slide_output .= "</div>\n</div>\n";
-		echo $slide_output;
+		echo "<div class='rli-slideshow' style='display:none;'>\n<div class='rli-slideshow-container'>\n$slide_output</div>\n</div>\n";
 
 		// echo js
 		echo $slide_script;
