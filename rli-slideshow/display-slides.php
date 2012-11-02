@@ -123,7 +123,7 @@ function rli_slideshow_render_slide_class_from_template( $template_part, $data )
  *	@todo make $default_background_path a generic option.
  */
 
-function rli_slideshow_display_slideshow( $slideshow ) {
+function rli_slideshow_display_slideshow( $slideshow = 'default' ) {
 	global $post;
 
 	$slides = rli_slideshow_get_slides();
