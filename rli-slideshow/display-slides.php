@@ -80,7 +80,7 @@ function rli_slideshow_render_slide_css_from_template( $template_part, $data ) {
 		return $output;
 
 	$css_constructor = array();
-	foreach ( $template_part['css'] as $param ) {
+	foreach ( $template_part as $param ) {
 		$css_constructor[] .= rli_slideshow_slide_template_convert_css_params( $param, $data );
 	}
 

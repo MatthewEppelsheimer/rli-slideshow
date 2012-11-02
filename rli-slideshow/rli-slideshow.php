@@ -151,6 +151,7 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 			'setting_type' => 'lookup'
 		)
 	);
+	return $template_keys;
 }
 
 /*
@@ -328,8 +329,8 @@ function rli_slideshow_frontend_setup() {
  *	@since		2012/11/01
  */
 
-if ( ! function_exists( 'rli_library_get_custom_posts' ) {
-	function rli_library_get_custom_posts( $post_type, $args, $defaults_override ) {
+if ( ! function_exists( 'rli_library_get_custom_posts' ) ) {
+	function rli_library_get_custom_posts( $post_type, $args, $defaults_override = array() ) {
 		$defaults = array(
 			'posts_per_page' => -1,
 			'order' => 'ASC',
