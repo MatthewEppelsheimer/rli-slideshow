@@ -192,6 +192,8 @@ function rli_slideshow_display_slideshow( $slideshow = 'default' ) {
 				</div>\n";
 		}
 
+		wp_reset_query();
+
 		// echo styles
 		echo "<style type='text/css'>\n$slide_styles</style>\n";
 
