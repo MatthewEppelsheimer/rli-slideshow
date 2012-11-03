@@ -147,10 +147,10 @@ function rli_slideshow_display_slideshow( $slideshow = 'default' ) {
 						hoverPause: true,
 						slideSpeed: 400,
 						pagination: false,
-						generatePagination: false,
+						generatePagination: true,
 						container: 'rli-slideshow-container',
-						currentClass: 'rli-wpslidesjs-current',
-						paginationClass: 'rli-wpslidesjs-pages'
+						currentClass: 'rli-slideshow-current',
+						paginationClass: 'rli-slideshow-pages'
 					});
 				});
 			</script>\n";
