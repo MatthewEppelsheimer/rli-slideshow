@@ -127,9 +127,9 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 			'name' => 'Background Image',
 			'description' => 'The slide\'s background image',
 			'help' => 'Defaults to the default image in settings.',
-			'css' => '%s { background-image: %s; }',
+			'css' => '%s { background-image: url(\'%s\'); }',
 			'css_params' => array( // maybe this should be the default.
-				'slide_id',
+				'slide_class',
 				'data'
 			),
 			'slide_class' => array( // classes to append to the slide's wrapper div

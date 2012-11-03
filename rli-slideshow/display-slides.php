@@ -16,7 +16,7 @@ function rli_slideshow_render_slide_html_from_template( $template_part, $data ) 
 			switch ( $template_part['lookup'] ) {
 				case 'the_content':
 					if ( isset( $template_part['html'] ) && isset( $template_part['html_params'] ) ) {
-						$output .= sprintf( $template_part['html'], $template_part['html_params'][0], the_content() );
+						$output .= sprintf( $template_part['html'], $template_part['html_params'][0], get_the_content() );
 					} else {
 						$output .= the_content();
 					}
@@ -50,7 +50,7 @@ function rli_slideshow_slide_template_convert_css_params( $param, $data ) {
 	$converted_param = '';
 
 	switch ( $param ) {
-		case 'slide_id':
+		case 'slide_class':
 			$converted_param = ".rli-slide-" . $post->ID;
 			break;
 		case 'data':
@@ -80,7 +80,7 @@ function rli_slideshow_render_slide_css_from_template( $template_part, $data ) {
 		return $output;
 
 	$css_constructor = array();
-	foreach ( $template_part as $param ) {
+	foreach ( $template_part['css_params'] as $param ) {
 		$css_constructor[] .= rli_slideshow_slide_template_convert_css_params( $param, $data );
 	}
 
@@ -140,7 +140,7 @@ function rli_slideshow_display_slideshow( $slideshow = 'default' ) {
 		$slide_script = "
 			\n<script type='text/javascript'>
 				jQuery(document).ready(function($) {
-					$('#rli-slideshow').css('display','block').slides({
+					$('.rli-slideshow').css('display','block').slides({
 						play: 7000,
 						effect: 'fade',
 						crossface: true,
