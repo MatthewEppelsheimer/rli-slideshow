@@ -325,7 +325,6 @@ function rli_slideshow_frontend_setup() {
  *						WP_Query class constructor and override the utility's own defaults
  *	@returns			an array of WP_Query results of the custom post type passed
  *
- *	@uses		rli_get_custom_posts
  *	@since		2012/11/01
  */
 
