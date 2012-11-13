@@ -146,7 +146,7 @@ function rli_slideshow_display_slideshow( $slideshow = 'default' ) {
 						crossface: true,
 						hoverPause: true,
 						slideSpeed: 400,
-						pagination: false,
+						pagination: true,
 						generatePagination: true,
 						container: 'rli-slideshow-container',
 						currentClass: 'rli-slideshow-current',
