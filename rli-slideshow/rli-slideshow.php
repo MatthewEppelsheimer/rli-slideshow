@@ -312,8 +312,8 @@ add_filter( 'attachment_fields_to_edit', 'rli_slideshow_modal_button', 20, 2 );
  *	@todo Rethink this.
  */
 
-function rli_slideshow_frontend_setup() {
-	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery') );
+function rli_slideshow_frontend_setup( $in_footer = false ) {
+	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery'), '1.1.9', $in_footer );
 }
 
 /**
