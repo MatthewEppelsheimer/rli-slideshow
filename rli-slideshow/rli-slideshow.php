@@ -98,19 +98,6 @@ add_action( 'admin_print_scripts-post-new.php', 'rli_slideshow_admin_assets', 11
 add_action( 'admin_print_scripts-post.php', 'rli_slideshow_admin_assets', 11 );
 
 /*
- * rli_slideshow_slide_editor_metabox_render( $post, $template )
- * Builds the metabox for a slide based on its template
- * 
- * @param int $post - the global $post object
- * @param str $template - the slug name of the slide's template
- */
-
-function rli_slideshow_slide_editor_metabox_render( $post, $template = 'default' ) {
-	$output = "<div>\n";
-	$template_options = rli_slideshow_get_slide_template_options( $post, $template );
-}
-
-/*
  * rli_slideshow_get_slide_template_options( $template )
  * Returns option keys and values associated with the given slideshow template
  *
@@ -312,8 +299,8 @@ add_filter( 'attachment_fields_to_edit', 'rli_slideshow_modal_button', 20, 2 );
  *	@todo Rethink this.
  */
 
-function rli_slideshow_frontend_setup( $in_footer = false ) {
-	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery'), '1.1.9', $in_footer );
+function rli_slideshow_frontend_setup() {
+	wp_enqueue_script( 'rli-jquery-slides' , plugins_url( 'js/slides.min.jquery.js', __FILE__ ) , array('jquery') );
 }
 
 /**
