@@ -78,12 +78,19 @@ register_activation_hook( __FILE__, 'rli_slideshow_rewrite_flush' );
  */
 
 function rli_slideshow_admin_scripts() {
-	wp_register_script('rli-slideshow-admin', plugins_url('js/rli-wpslidesjs-admin.js', __FILE__ ), array('jquery','media-upload','thickbox'));
+	wp_register_script('rli-slideshow-admin', plugins_url('js/rli-slideshow-admin.js', __FILE__ ), array('jquery','media-upload','thickbox'));
 	wp_enqueue_script('rli-slideshow-admin');
+	// Image loader scripts
+	wp_enqueue_script('jquery');  
+        wp_enqueue_script('thickbox'); 
+	wp_enqueue_script('media-upload');  
+        wp_enqueue_script('wptuts-upload');
 }
 
 function rli_slideshow_admin_styles() {
 	wp_enqueue_style('thickbox');
+	//Image loader styles
+
 }
 
 function rli_slideshow_admin_assets() {
@@ -92,7 +99,7 @@ function rli_slideshow_admin_assets() {
 	    rli_slideshow_admin_scripts();
 	    rli_slideshow_admin_styles();
     }
-}
+}  
 
 add_action( 'admin_print_scripts-post-new.php', 'rli_slideshow_admin_assets', 11 );
 add_action( 'admin_print_scripts-post.php', 'rli_slideshow_admin_assets', 11 );
@@ -155,8 +162,10 @@ function rli_slideshow_render_setting_from_template( $setting, $value, $template
 	$output = "";
 
 	foreach ( $template_specs as $specification ) {
-		if ( $specification['slug'] == $setting )
+		if ( $specification['slug'] == $setting ){
 			$pattern = $specification;
+			break;
+		}
 	}
 
 	switch ( $pattern['setting_type'] ) {
@@ -164,12 +173,15 @@ function rli_slideshow_render_setting_from_template( $setting, $value, $template
 			break;
 		case 'string':
 			$output .= "<h4>" . $pattern['name'] . "</h4>\n";
-			$output .= "<input type='text' name='rli_slideshow_slide_" . $setting . "' value='" . esc_attr( $value ) . "' />";
+			$output .= "<input type='text' id='rli-slideshow-background-image' class='text' name='rli_slideshow_slide_" . $setting . "' value='" . esc_attr( $value ) . "' />";
+			$output .= "<input id='rli-slide-choose-background' type='button' class='button' value='Upload Slide Image' />";
+
 			if ( isset( $pattern['help'] ) ) {
-				$output .= " <em class='how-to'>" . $pattern['help'] . "</em>\n";
-			} else {
-				$output .= "\n";
+				$output .= " <em class='how-to'>" . $pattern['help'] . "</em>";
 			}
+			
+			$output .= "\n";
+			
 			break;
 	}
 
