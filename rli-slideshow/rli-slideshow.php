@@ -134,7 +134,7 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 			'order' => 0,
 			'name' => 'Background Image',
 			'description' => 'The slide\'s background image',
-			'help' => 'Defaults to the default image in settings.',
+			// 'help' => 'Defaults to the default image in settings.',
 			'css' => '%s { background-image: url(\'%s\'); }',
 			'css_params' => array( // maybe this should be the default.
 				'slide_class',
