@@ -80,16 +80,9 @@ register_activation_hook( __FILE__, 'rli_slideshow_rewrite_flush' );
 function rli_slideshow_admin_scripts() {
 	wp_register_script('rli-slideshow-admin', plugins_url('js/rli-slideshow-admin.js', __FILE__ ), array('jquery','media-upload','thickbox'));
 	wp_enqueue_script('rli-slideshow-admin');
-	// Image loader scripts
-	wp_enqueue_script('jquery');  
-        wp_enqueue_script('thickbox'); 
-	wp_enqueue_script('media-upload');  
-        wp_enqueue_script('wptuts-upload');
 }
 
 function rli_slideshow_admin_styles() {
-	wp_enqueue_style('thickbox');
-	//Image loader styles
 
 }
 
@@ -98,11 +91,32 @@ function rli_slideshow_admin_assets() {
     if( 'rli_slide' == $post_type ) {
 	    rli_slideshow_admin_scripts();
 	    rli_slideshow_admin_styles();
+
     }
 }  
 
 add_action( 'admin_print_scripts-post-new.php', 'rli_slideshow_admin_assets', 11 );
 add_action( 'admin_print_scripts-post.php', 'rli_slideshow_admin_assets', 11 );
+
+function rli_image_selector_setup() {  
+    global $pagenow;  
+    if ( 'media-upload.php' == $pagenow || 'async-upload.php' == $pagenow ) {  
+        // Now we'll replace the 'Insert into Post Button' inside Thickbox  
+        add_filter( 'gettext', 'replace_thickbox_text'  , 1, 3 ); 
+    } 
+} 
+
+add_action( 'admin_init', 'rli_image_selector_setup' );
+
+function replace_thickbox_text($translated_text, $text, $domain) { 
+    if ('Insert into Post' == $text) {
+        $referer = strpos( wp_get_referer(), 'rli_slide_select_settings' );
+        if ( $referer != '' ) { 
+            return __('Set Image as Slide Background');  
+        }
+    }  
+    return $translated_text;  
+}  
 
 /*
  * rli_slideshow_get_slide_template_options( $template )
@@ -148,6 +162,27 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 	return $template_keys;
 }
 
+
+/*
+ * Generate a button to select an image using WordPress's media upload and a preview image
+ * 	Assumes js includes are already included for media uploader and js function is named rli_upload_media
+ *	Returns string of html code for the added button 
+ *	@param str $text_id - id of existing textfield to submit img_url
+ *	@param str $image_id - id of preview image
+ *	@param str $image_init - initial state of image
+ *	@param str $button_name - displayed name of button
+ *	@param str $button_id - id of button to create
+ */
+
+function rli_create_media_upload_button($text_id, $image_id, $image_init, $button_name, $button_id) {
+	$ret = "<div id='" . $image_id . "' style='min-height: 40px;'>";
+	$ret .="<img height='100px' src='$image_init' />  <br/>";
+	$ret .= "<input id='" . $button_id . "' type='button' class='button' onclick=\"rli_upload_media(" . $text_id . ", " . $image_id . ");\" value='" . $button_name . "' />";
+	$ret .= "</div>";
+ 
+	return $ret;
+}
+
 /*
  *	rli_slideshow_render_setting_from_template( $setting, $value, $template )
  *	@param str $setting - setting name (slug)
@@ -173,15 +208,14 @@ function rli_slideshow_render_setting_from_template( $setting, $value, $template
 			break;
 		case 'string':
 			$output .= "<h4>" . $pattern['name'] . "</h4>\n";
-			$output .= "<input type='text' id='rli-slideshow-background-image' class='text' name='rli_slideshow_slide_" . $setting . "' value='" . esc_attr( $value ) . "' />";
-			$output .= "<input id='rli-slide-choose-background' type='button' class='button' value='Upload Slide Image' />";
+			$output .= "<input type='hidden' id='rli_slideshow_background_image_" . $setting ."' name='rli_slideshow_slide_" . $setting . "' value='" . esc_attr( $value ) . "' />";
+			$output .= rli_create_media_upload_button('rli_slideshow_background_image_' . $setting, 'upload_bg_preview', esc_attr( $value ), 'Upload Slide Image', 'rli_slideshow_upload_background_button');
 
 			if ( isset( $pattern['help'] ) ) {
 				$output .= " <em class='how-to'>" . $pattern['help'] . "</em>";
 			}
 			
 			$output .= "\n";
-			
 			break;
 	}
 

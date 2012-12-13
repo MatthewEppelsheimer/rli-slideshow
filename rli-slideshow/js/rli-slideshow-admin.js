@@ -4,39 +4,37 @@
 
 /* Still under development! */
 
-var attachmentInput = '';
+// "Struct" containing all the info for the custom media uploader
+var upload_media = {
+	'textfield': '',
+	'img_id': '',
+	'img_url': '',
+	'default_send_to_editor': '',
+	'new_send_to_editor':''
+};
+
 
 jQuery(document).ready(function() {
- 
-	jQuery('#rli-slide-choose-background').click(function() {
-		attachmentInput = jQuery(this).prev('input'); /*grab the specific input*/
-		formfield = jQuery('text').attr('id');
-		tb_show('Upload Slide', 'media-upload.php?type=image&TB_iframe=true&post_id=0', false);
-		return false;
-	});
-
+ 	upload_media.default_send_to_editor = window.send_to_editor; // save default send to editor
+	upload_media.new_send_to_editor = function(html) {
+		upload_media.img_url = jQuery('img',html).attr('src');
+		if ( console ) console.log(upload_media.img_url); // not sure what this does, but Matt Epp had it in
+		jQuery('#' + upload_media.textfield.id).val(upload_media.img_url);
+		
+		tb_remove();
+		window.send_to_editor = upload_media.default_send_to_editor; // reset send to editor to default
+		jQuery('#' + upload_media.img_id.id + " img").attr('src',upload_media.img_url);
+		jQuery('#submit_options_form').trigger('click');
+	}
+	
 });
 
-window.send_to_editor = function(html) {
-	
-	var img_url = jQuery('img',html).attr('src');
-	//if ( console ) console.log(img_url);
-	//alert(html);	
-	//alert(img_url);
-	jQuery('#rli-slideshow-background-image').val(img_url);
-	
-	//attachmentInput.val(img_url);
-	
-	tb_remove();
-}
+function rli_upload_media(textfield_id, image_id){
+	upload_media.textfield = textfield_id;
+	upload_media.img_id = image_id;
+	window.send_to_editor = upload_media.new_send_to_editor;
+	formfield = jQuery('text').attr('id');
+	tb_show('Upload Slide', 'media-upload.php?referer=rli_slide_select_settings&type=image&TB_iframe=true&post_id=0', false);
+	return false;
+} 
 
-/*
-window.send_to_editor = function(html) {
-	
-	imgurl = jQuery('.urlfield').attr('value');
-	if ( console ) console.log(imgurl);
-	attachmentInput.val(imgurl);
-	
-	tb_remove();
-}
-*/
