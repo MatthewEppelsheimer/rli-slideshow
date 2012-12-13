@@ -115,7 +115,7 @@ function replace_thickbox_text($translated_text, $text, $domain) {
             return __('Set Image as Slide Background');  
         }
     }  
-    return $translated_text;  
+    return $translated_text;
 }  
 
 /*
@@ -172,12 +172,13 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
  *	@param str $image_init - initial state of image
  *	@param str $button_name - displayed name of button
  *	@param str $button_id - id of button to create
+ *	@todo Move thiis function to a better location
  */
 
 function rli_create_media_upload_button($text_id, $image_id, $image_init, $button_name, $button_id) {
-	$ret = "<div id='" . $image_id . "' style='min-height: 40px;'>";
+	$ret = "<div id='$image_id' style='min-height: 40px;'>";
 	$ret .="<img height='100px' src='$image_init' />  <br/>";
-	$ret .= "<input id='" . $button_id . "' type='button' class='button' onclick=\"rli_upload_media(" . $text_id . ", " . $image_id . ");\" value='" . $button_name . "' />";
+	$ret .= "<input id='$button_id' type='button' class='button' onclick=\"rli_upload_media($text_id, $image_id);\" value='$button_name' />";
 	$ret .= "</div>";
  
 	return $ret;
@@ -273,6 +274,11 @@ add_action( 'add_meta_boxes', 'rli_slideshow_create_detail_metabox' );
  */
 
 function rli_slideshow_save_slide_meta( $post_id ) {
+	// verify if this is an auto save routine. 
+	// If it is our form has not been submitted, so we dont want to do anything
+	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE )
+		return $post_id;
+        
 	$slide_settings = get_post_meta( $post_id, '_rli_slideshow_slide_settings', true );
 
 	$template_specs = rli_slideshow_get_slide_template_specifications( 'default' );
@@ -368,8 +374,8 @@ if ( ! function_exists( 'rli_library_get_custom_posts' ) ) {
 			'order' => 'ASC',
 			'orderby' => 'menu_order'
 		);
-		$new_defaults = wp_parse_args( $defaults_override, $defaults );
-		$query_args = wp_parse_args( $args, $new_defaults );
+		$new_defaults = wp_parse_args( $defaults, $defaults_override );
+		$query_args = wp_parse_args( $new_defaults, $args );
 		$query_args['post_type'] = $post_type;
 	
 		$results = new WP_Query( $query_args );
