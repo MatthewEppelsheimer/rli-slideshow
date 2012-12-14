@@ -210,7 +210,7 @@ function rli_slideshow_render_setting_from_template( $setting, $value, $template
 		case 'string':
 			$output .= "<h4>" . $pattern['name'] . "</h4>\n";
 			$output .= "<input type='hidden' id='rli_slideshow_background_image_" . $setting ."' name='rli_slideshow_slide_" . $setting . "' value='" . esc_attr( $value ) . "' />";
-			$output .= rli_create_media_upload_button('rli_slideshow_background_image_' . $setting, 'upload_bg_preview', esc_attr( $value ), 'Upload Slide Image', 'rli_slideshow_upload_background_button');
+			$output .= rli_create_media_upload_button('rli_slideshow_background_image_' . $setting, 'upload_bg_preview', esc_attr( $value ), _('Choose Background Image'), 'rli_slideshow_upload_background_button');
 
 			if ( isset( $pattern['help'] ) ) {
 				$output .= " <em class='how-to'>" . $pattern['help'] . "</em>";
@@ -374,8 +374,8 @@ if ( ! function_exists( 'rli_library_get_custom_posts' ) ) {
 			'order' => 'ASC',
 			'orderby' => 'menu_order'
 		);
-		$new_defaults = wp_parse_args( $defaults, $defaults_override );
-		$query_args = wp_parse_args( $new_defaults, $args );
+		$new_defaults = wp_parse_args( $defaults_override, $defaults );
+		$query_args = wp_parse_args( $args, $new_defaults );
 		$query_args['post_type'] = $post_type;
 	
 		$results = new WP_Query( $query_args );
