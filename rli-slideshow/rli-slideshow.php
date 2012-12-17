@@ -148,7 +148,7 @@ function rli_slideshow_get_slide_template_specifications( $template ) {
 			'order' => 0, 
 			'name' => 'Background Image',
 			'description' => 'The slide\'s background image',
-			'help' => 'Defaults to the default image in settings.',
+			// 'help' => 'Defaults to the default image in settings.',
 			'css' => '%s { background-image: url(\'%s\'); }',
 			'css_params' => array( // maybe this should be the default.
 				'slide_class',
@@ -226,7 +226,7 @@ function rli_slideshow_render_setting_from_template( $setting, $value, $template
 			
 			$output .= "<h4>" . $pattern['name'] . "</h4>\n";
 			$output .= "<input type='hidden' id='$textfield_id' name='rli_slideshow_slide_" . $setting . "' value='" . esc_attr( $value ) . "' />";
-			$output .= rli_create_media_upload_button($textfield_id, 'upload_bg_preview', esc_attr( $value ), 'Upload Slide Image', 'rli_slideshow_upload_background_button');
+			$output .= rli_create_media_upload_button($textfield_id, 'upload_bg_preview', esc_attr( $value ), _('Choose Background Image'), 'rli_slideshow_upload_background_button');
 
 			if ( isset( $pattern['help'] ) ) {
 				$output .= " <em class='how-to'>" . $pattern['help'] . "</em>";
@@ -390,8 +390,8 @@ if ( ! function_exists( 'rli_library_get_custom_posts' ) ) {
 			'order' => 'ASC',
 			'orderby' => 'menu_order'
 		);
-		$new_defaults = wp_parse_args( $defaults, $defaults_override );
-		$query_args = wp_parse_args( $new_defaults, $args );
+		$new_defaults = wp_parse_args( $defaults_override, $defaults );
+		$query_args = wp_parse_args( $args, $new_defaults );
 		$query_args['post_type'] = $post_type;
 	
 		$results = new WP_Query( $query_args );
