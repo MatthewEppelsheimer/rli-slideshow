@@ -18,9 +18,6 @@ jQuery(document).ready(function() {
  	upload_media.default_send_to_editor = window.send_to_editor; // save default send to editor
 	upload_media.new_send_to_editor = function(html) {
 		upload_media.img_url = jQuery('img',html).attr('src');
-			// not sure what this next line does, but Matt Epp had it in.
-			// Commented out to fix bug in browser: IE 8
-		//if ( console ) console.log(upload_media.img_url); 
 		jQuery('#' + upload_media.textfield.id).val(upload_media.img_url);
 		
 		tb_remove();
